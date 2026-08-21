@@ -3,15 +3,15 @@
 Công cụ xử lý dữ liệu cho nhân sự triển khai phần mềm. Chạy hoàn toàn trong
 trình duyệt: không cần Excel, không cần bật macro, không có backend.
 
-Từ `V2.0.0`, app có **hai workspace** dùng chung một Workbook:
+Từ `V2.2.0`, app có **hai workspace** với hai lưới/workbook riêng:
 
 | Workspace | Làm gì |
 | --- | --- |
 | **Gen Script** | Bảng dữ liệu → câu lệnh `INSERT` / `UPDATE` / `SELECT` |
 | **Formula Helper** | Nhu cầu nghiệp vụ → công thức Excel / Google Sheets |
 
-Nhập file Excel một lần, chuyển qua lại giữa hai workspace không mất dữ liệu và
-không phải nhập lại.
+Import Excel ở workspace nào thì dữ liệu chỉ nạp vào workspace đó. Chuyển qua
+lại giữa Gen Script và Formula Helper không làm ghi đè lưới còn lại.
 
 ---
 
@@ -97,7 +97,7 @@ thanh trên cùng để đổi theme; lựa chọn theme cũng được lưu ri�
 đang dùng.
 
 Footer hiển thị bản quyền **© 2026 HuyVo. All rights reserved.** và phiên bản
-hiện tại `V2.0.0` ở góc phải dưới cùng.
+hiện tại `V2.3.0` ở góc phải dưới cùng.
 
 ### INSERT
 
@@ -208,6 +208,15 @@ Bấm **Formula Helper** trên thanh tiêu đề. Điểm khác biệt so với 
 app không hỏi *"bạn muốn dùng hàm nào"* mà hỏi *"bạn muốn làm gì"*, rồi tự chọn
 công thức phù hợp.
 
+Formula Helper có cấu trúc **cấu hình ở trên, lưới dữ liệu ở dưới**. Lưới mở
+mặc định, độc lập với Gen Script, hỗ trợ dán Excel, chọn vùng, copy/cut/paste,
+xoá dữ liệu, kéo fill, `Ctrl+Z`/`Ctrl+Y`, phím mũi tên và sửa ô trực tiếp như
+lưới Gen Script. Khi sửa trên lưới này, danh sách sheet/cột, preview và công
+thức được cập nhật theo workbook Formula Helper hiện tại.
+
+Panel **Workbook / Xem trước kết quả** được ẩn mặc định để lưới rộng nhất có
+thể. Bấm **Xem kết quả** trên thanh Formula Helper khi cần mở lại phần review.
+
 ### Các công cụ
 
 | Nhóm | Công cụ | Hàm sinh ra |
@@ -238,8 +247,8 @@ Database.MaSinhVien       ·  Cột B
 Database.IDSinhVien       ·  Cột A
 ```
 
-Nếu đang chọn sẵn một cột trên lưới ở Gen Script, bấm **Dùng cột đang chọn** để
-điền nhanh.
+Nếu đang chọn sẵn một cột trên lưới Formula Helper, bấm **Dùng cột đang chọn**
+để điền nhanh.
 
 ### Dấu phân cách `,` và `;`
 
@@ -354,7 +363,7 @@ Mã VBA gốc được giữ trong `docs/` để đối chiếu.
 │   ├── js/
 │   │   ├── generator.js          ← lõi sinh SQL, không phụ thuộc DOM
 │   │   ├── grid.js               ← lưới nhập liệu, dán từ Excel
-│   │   ├── workbook.js           ← Workbook dùng chung cho 2 workspace
+│   │   ├── workbook.js           ← API đọc workbook riêng của Formula Helper
 │   │   ├── formula-engine.js     ← lõi sinh công thức, không phụ thuộc DOM
 │   │   ├── formula-presets.js    ← danh mục công cụ + schema builder
 │   │   ├── formula-explainer.js  ← giải thích + mô phỏng kết quả
@@ -366,15 +375,15 @@ Mã VBA gốc được giữ trong `docs/` để đối chiếu.
 │       └── SheetJS-LICENSE.txt   ← Apache-2.0
 ├── tests/
 │   ├── formula-engine.test.js    ← 61 test cho bộ sinh công thức
-│   └── app-smoke.test.js         ← 50 test tích hợp (cần jsdom)
+│   └── app-smoke.test.js         ← test tích hợp (cần jsdom)
 └── docs/
     ├── Module1.bas        ← GetInsertSQL gốc
     └── Module2.bas        ← UpdateSQL gốc
 ```
 
 Hai lõi `generator.js` và `formula-engine.js` tách bạch: Gen Script không biết gì
-về công thức Excel, Formula Helper không biết gì về SQL. Cả hai cùng đọc
-`workbook.js`.
+về công thức Excel, Formula Helper không biết gì về SQL. `workbook.js` chỉ là
+lớp đọc ổn định cho workbook riêng của Formula Helper.
 
 ### Chạy test
 
@@ -401,6 +410,57 @@ console.log(out.sql, out.warnings, out.stats);
 
 ## Changelog
 
+### V2.3.0
+
+**Mới**
+
+- Formula Helper chuyển sang layout chuyên nghiệp hơn: thanh tuỳ chọn trên cùng,
+  cấu hình/chức năng ở phía trên và lưới dữ liệu full width ở phía dưới.
+- Lưới Formula Helper mở mặc định để thao tác dữ liệu ngay.
+- Panel Workbook / Xem trước kết quả được ẩn mặc định và mở bằng nút
+  **Xem kết quả** khi cần review.
+
+**Sửa lỗi**
+
+- Đóng lưới rồi mở lại không còn mất table/grid.
+- Khi sửa header hoặc dữ liệu trên lưới Formula Helper, dropdown chọn cột,
+  công thức và preview được cập nhật theo workbook hiện tại.
+
+### V2.2.0
+
+**Mới**
+
+- Gen Script và Formula Helper dùng hai lưới/workbook riêng, không còn chia sẻ
+  cùng một bộ sheet.
+- **Nhập từ Excel** nạp dữ liệu vào đúng workspace đang mở: Gen Script hoặc
+  Formula Helper.
+- Formula Helper có workbook mặc định `FormulaData` để mở lưới và nhập dữ liệu
+  ngay, không cần tạo dữ liệu từ Gen Script trước.
+
+**Cải tiến**
+
+- Nút **Dùng cột đang chọn** trong Formula Helper lấy cột từ lưới Formula Helper
+  đang mở.
+- Hướng dẫn trong app và README ghi rõ dữ liệu hai workspace độc lập để tránh
+  hiểu nhầm khi nhiều người thao tác cùng lúc.
+
+### V2.1.0
+
+**Mới**
+
+- Formula Helper có nút **Mở lưới dữ liệu** để thao tác workbook dạng grid như
+  Gen Script: dán dữ liệu, fill, copy/cut/paste, xoá ô/dòng/cột, undo/redo.
+- Lưới trong Formula Helper sửa trực tiếp workbook nội bộ của Formula Helper.
+
+**Sửa lỗi**
+
+- Thay file `assets/vendor/xlsx.core.min.js` bị thiếu đoạn cuối, gây lỗi
+  `XLSX is not defined` khi bấm **Nhập từ Excel**.
+- `app.js` đọc SheetJS qua `window.XLSX` và báo lỗi rõ hơn nếu thư viện Excel
+  chưa được tải.
+- Khi đổi sheet từ Formula Helper, app không commit lại grid Gen Script đang ẩn
+  để tránh ghi đè dữ liệu vừa sửa trong Formula Helper.
+
 ### V2.0.0
 
 **Mới**
@@ -417,7 +477,8 @@ console.log(out.sql, out.warnings, out.stats);
 
 **Cải tiến**
 
-- Tách `WorkbookState` khỏi bộ sinh SQL; hai workspace dùng chung một Workbook.
+- Tách `WorkbookState` khỏi bộ sinh SQL để Formula Helper đọc dữ liệu qua API
+  workbook ổn định.
 - Chia nhỏ JavaScript thành các module theo trách nhiệm.
 - Bộ test tự động cho lõi sinh công thức và luồng tích hợp.
 
