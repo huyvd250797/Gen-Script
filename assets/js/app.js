@@ -1,5 +1,8 @@
 /*!
- * app.js — Ghép lưới nhập liệu, bộ tuỳ chọn và bộ sinh SQL lại với nhau.
+ * app.js — App shell: ghép lưới nhập liệu, bộ sinh SQL và Formula Helper.
+ *
+ * V2.0.0: state.sheets trở thành Shared Workbook, được Workbook.bind() gắn vào
+ * để Formula Helper đọc chung mà không cần import lại Excel.
  */
 (function () {
   'use strict';
@@ -8,10 +11,12 @@
   var DEVICE_ID_KEY = 'genscript.device.v1';
   var DATA_STORE_PREFIX = 'genscript.data.v2.';
   var THEME_STORE_PREFIX = 'genscript.theme.v1.';
+  var WORKSPACE_STORE_PREFIX = 'genscript.workspace.v1.';
   var storage = getStorage();
   var deviceId = ensureDeviceId();
   var STORE_KEY = DATA_STORE_PREFIX + deviceId;
   var THEME_KEY = THEME_STORE_PREFIX + deviceId;
+  var WORKSPACE_KEY = WORKSPACE_STORE_PREFIX + deviceId;
   var APP_LOADING_MS = 1500;
   var colorSchemeMeta = document.querySelector('meta[name="color-scheme"]');
   var $ = function (id) { return document.getElementById(id); };
@@ -36,6 +41,10 @@
     reviewToast: $('reviewToast'),
     fileInput: $('fileInput'),
     helpDialog: $('helpDialog'),
+    formulaHelpDialog: $('formulaHelpDialog'),
+    formulaRoot: $('formulaRoot'),
+    wsGenScript: $('workspaceGenScript'),
+    wsFormula: $('workspaceFormula'),
     scriptDialog: $('scriptDialog'),
     btnTheme: $('btnTheme'),
     sqlFormatInputs: document.querySelectorAll('input[name="sqlFormat"]')
@@ -59,7 +68,8 @@
     lastSql: '',
     lastResult: null,
     theme: 'dark',
-    sqlFormat: 'pretty'
+    sqlFormat: 'pretty',
+    workspace: 'genscript'
   };
 
   var grid = null;
@@ -344,6 +354,60 @@
     else scheduleRender();
   }
 
+  /* ------------------------------------------------------------ workspace */
+
+  function normalizeWorkspace(name) {
+    return name === 'formula' ? 'formula' : 'genscript';
+  }
+
+  /**
+   * Chuyển giữa Gen Script và Formula Helper. Workbook không bị đụng tới nên
+   * người dùng không phải import lại Excel (§10 §200).
+   */
+  function setWorkspace(name, skipPersist) {
+    state.workspace = normalizeWorkspace(name);
+    document.body.dataset.workspace = state.workspace;
+
+    if (el.wsGenScript) el.wsGenScript.hidden = state.workspace !== 'genscript';
+    if (el.wsFormula) el.wsFormula.hidden = state.workspace !== 'formula';
+
+    Array.prototype.forEach.call(document.querySelectorAll('.ws-btn'), function (b) {
+      var on = b.dataset.workspace === state.workspace;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+
+    if (state.workspace === 'formula') {
+      commitActiveSheet();
+      ensureFormulaHelper();
+      notifyWorkbook('workspace');
+    }
+    if (!skipPersist) storageSet(WORKSPACE_KEY, state.workspace);
+  }
+
+  var formulaReady = false;
+
+  function ensureFormulaHelper() {
+    if (formulaReady || !window.FormulaHelper || !el.formulaRoot) return;
+    formulaReady = true;
+    window.FormulaHelper.init(el.formulaRoot, {
+      toast: toast,
+      onImport: function () { el.fileInput.click(); },
+      getSelectedColumn: function () {
+        if (!grid) return null;
+        return { sheetIndex: state.activeSheet, colIndex: grid.getSelection().column };
+      },
+      setActiveSheet: function (index) {
+        selectSheet(index);
+        notifyWorkbook('sheet');
+      }
+    });
+  }
+
+  function notifyWorkbook(reason) {
+    if (window.Workbook) window.Workbook.notify(reason);
+  }
+
   /* ------------------------------------------------------------ theme */
 
   function applyTheme(theme) {
@@ -418,6 +482,7 @@
     commitActiveSheet();
     if (sheet && sheet.name !== oldName) renderTabs();
     persist();
+    notifyWorkbook('data');
   }
 
   function render(showReview) {
@@ -482,6 +547,7 @@
       sheets: state.sheets,
       dialect: el.dialect.value,
       sqlFormat: state.sqlFormat,
+      workspace: state.workspace,
       goEvery: $('optGoEvery').value,
       opts: Object.keys(OPT_INPUTS).reduce(function (acc, k) {
         acc[k] = OPT_INPUTS[k].checked; return acc;
@@ -511,6 +577,7 @@
       state.activeSheet = Math.min(saved.activeSheet || 0, saved.sheets.length - 1);
       state.mode = normalizeMode(saved.mode);
       state.sqlFormat = normalizeSqlFormat(saved.sqlFormat);
+      state.workspace = normalizeWorkspace(saved.workspace);
       if (saved.dialect) el.dialect.value = saved.dialect;
       if (saved.goEvery != null) $('optGoEvery').value = saved.goEvery;
       if (saved.opts) {
@@ -567,7 +634,9 @@
         toast('File không có sheet nào chứa dữ liệu.');
         return;
       }
+      if (window.Workbook) window.Workbook.setFileName(file.name);
       selectSheet(state.sheets.length - added, true);
+      notifyWorkbook('import');
       toast('Đã nạp ' + added + ' bảng từ ' + file.name);
     };
     reader.onerror = function () { toast('Không đọc được file.'); };
@@ -640,6 +709,10 @@
   function init() {
     applyTheme(storageGet(THEME_KEY) || 'dark');
 
+    // Workbook dùng chung: gắn thẳng vào state để không nhân đôi dataset (§11 §170).
+    if (window.Workbook) window.Workbook.bind(state);
+    if (window.FormulaStore) window.FormulaStore.scopeTo(deviceId);
+
     grid = new Grid(el.gridHost, {
       onChange: scheduleRender,
       onStatus: toast,
@@ -671,6 +744,11 @@
     renderTabs();
     setMode(state.mode);
     syncSqlFormatControls();
+
+    Array.prototype.forEach.call(document.querySelectorAll('.ws-btn'), function (b) {
+      b.addEventListener('click', function () { setWorkspace(b.dataset.workspace); });
+    });
+    setWorkspace(storageGet(WORKSPACE_KEY) || state.workspace, true);
 
     el.tableName.addEventListener('input', function () {
       syncActiveSheetName();
@@ -719,7 +797,10 @@
     $('btnUndo').addEventListener('click', function () { grid.undo(); });
     $('btnRedo').addEventListener('click', function () { grid.redo(); });
     $('btnClear').addEventListener('click', function () {
-      if (confirm('Xoá toàn bộ dữ liệu của bảng "' + el.tableName.value + '"?')) grid.clear();
+      if (confirm('Xoá toàn bộ dữ liệu của bảng "' + el.tableName.value + '"?')) {
+        grid.clear();
+        notifyWorkbook('clear');
+      }
     });
 
     $('btnGenerate').addEventListener('click', openScriptReview);
@@ -733,9 +814,26 @@
     });
 
     $('btnHelp').addEventListener('click', function () {
-      if (el.helpDialog.showModal) el.helpDialog.showModal();
-      else el.helpDialog.setAttribute('open', '');
+      var dialog = state.workspace === 'formula' ? el.formulaHelpDialog : el.helpDialog;
+      if (!dialog) return;
+      if (dialog.showModal) dialog.showModal();
+      else dialog.setAttribute('open', '');
     });
+
+    // Modal hướng dẫn Formula Helper: không đóng khi bấm ra ngoài (§118).
+    if (el.formulaHelpDialog) {
+      var closeFormulaHelp = function () {
+        if (el.formulaHelpDialog.close) el.formulaHelpDialog.close();
+        else el.formulaHelpDialog.removeAttribute('open');
+      };
+      el.formulaHelpDialog.addEventListener('click', function (e) {
+        if (e.target === el.formulaHelpDialog) e.stopPropagation();
+      });
+      var btnClose = $('btnFormulaHelpClose');
+      var btnDone = $('btnFormulaHelpDone');
+      if (btnClose) btnClose.addEventListener('click', closeFormulaHelp);
+      if (btnDone) btnDone.addEventListener('click', closeFormulaHelp);
+    }
 
     document.addEventListener('keydown', function (e) {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); downloadSql(); }

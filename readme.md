@@ -1,8 +1,17 @@
-# Gen Script
+# ASC-GenScript
 
-Bản web của file `gen-script.xlsm` — nhập dữ liệu dạng bảng, nhận ngay câu lệnh
-`INSERT`, `UPDATE` hoặc `SELECT`. Không cần Excel, không cần bật macro, chạy hoàn toàn
-trong trình duyệt.
+Công cụ xử lý dữ liệu cho nhân sự triển khai phần mềm. Chạy hoàn toàn trong
+trình duyệt: không cần Excel, không cần bật macro, không có backend.
+
+Từ `V2.0.0`, app có **hai workspace** dùng chung một Workbook:
+
+| Workspace | Làm gì |
+| --- | --- |
+| **Gen Script** | Bảng dữ liệu → câu lệnh `INSERT` / `UPDATE` / `SELECT` |
+| **Formula Helper** | Nhu cầu nghiệp vụ → công thức Excel / Google Sheets |
+
+Nhập file Excel một lần, chuyển qua lại giữa hai workspace không mất dữ liệu và
+không phải nhập lại.
 
 ---
 
@@ -88,7 +97,7 @@ thanh trên cùng để đổi theme; lựa chọn theme cũng được lưu ri�
 đang dùng.
 
 Footer hiển thị bản quyền **© 2026 HuyVo. All rights reserved.** và phiên bản
-hiện tại `V1.5.0` ở góc phải dưới cùng.
+hiện tại `V2.0.0` ở góc phải dưới cùng.
 
 ### INSERT
 
@@ -193,6 +202,93 @@ thì mới được đưa vào điều kiện.
 
 ---
 
+## Formula Helper
+
+Bấm **Formula Helper** trên thanh tiêu đề. Điểm khác biệt so với việc tra Google:
+app không hỏi *"bạn muốn dùng hàm nào"* mà hỏi *"bạn muốn làm gì"*, rồi tự chọn
+công thức phù hợp.
+
+### Các công cụ
+
+| Nhóm | Công cụ | Hàm sinh ra |
+| --- | --- | --- |
+| Tra cứu | Tra cứu dữ liệu | `XLOOKUP` · `VLOOKUP` · `INDEX+MATCH` · `FILTER` |
+| Kiểm tra | Kiểm tra trùng | `COUNTIF` · `COUNTIFS` |
+| Kiểm tra | Kiểm tra tồn tại | `COUNTIF` · `XMATCH` · `XLOOKUP` |
+| Kiểm tra | Kiểm tra dữ liệu rỗng | `IF` + `OR` |
+| So sánh | So sánh dữ liệu | `IF` (+ `TRIM`, `LOWER`) |
+| So sánh | So sánh hai danh sách | `COUNTIF` |
+| Lọc | Lọc dữ liệu | `FILTER` · `QUERY` (Google Sheets) |
+| Điều kiện | Kiểm tra điều kiện | `IF` · `IFS` · `AND` · `OR` lồng nhau |
+| Text | Làm sạch Text | `TRIM` `CLEAN` `UPPER` `LOWER` `PROPER` `SUBSTITUTE` `LEFT` `RIGHT` `MID` `LEN` |
+| Text | Ghép dữ liệu | `TEXTJOIN` · toán tử `&` |
+| Ngày | Xử lý ngày | `TEXT` `DATEDIF` `YEAR` `MONTH` `DAY` · năm học |
+| Nâng cao | Đếm & Tính tổng | `COUNTIF` `COUNTIFS` `SUM` `SUMIF` `SUMIFS` |
+| Nâng cao | Lấy danh sách duy nhất | `UNIQUE` · `SORT` |
+| SQL | Tạo giá trị SQL | `="'"&A2&"'"` |
+| SQL | Tạo danh sách SQL IN | `TEXTJOIN` + xuất thẳng `WHERE ... IN (...)` |
+
+### Chọn cột theo tên, không theo A/B/C
+
+Dropdown hiển thị dạng `Sheet.Cột` kèm chú thích cột Excel tương ứng:
+
+```
+SinhVien.MaSinhVien       ·  Cột A
+Database.MaSinhVien       ·  Cột B
+Database.IDSinhVien       ·  Cột A
+```
+
+Nếu đang chọn sẵn một cột trên lưới ở Gen Script, bấm **Dùng cột đang chọn** để
+điền nhanh.
+
+### Dấu phân cách `,` và `;`
+
+Excel trên máy cài vùng Việt Nam thường dùng `;`, máy cài vùng Mỹ dùng `,`.
+Chọn ở thanh trên cùng — mặc định **Tự động** đoán theo locale trình duyệt.
+Lựa chọn được ghi nhớ cho lần sau.
+
+```
+=XLOOKUP(A2,Database!B:B,Database!A:A,"")
+=XLOOKUP(A2;Database!B:B;Database!A:A;"")
+```
+
+### Sheet có khoảng trắng
+
+Tự bọc nháy đơn, không cần tự thêm:
+
+```
+'CONFIG - Process'!A:A
+```
+
+### Xem trước kết quả
+
+Với các công cụ mà JavaScript mô phỏng được (tra cứu, trùng, tồn tại, so sánh,
+làm sạch text, ghép chuỗi, SQL IN), panel bên phải chạy thử trên vài chục dòng
+đầu để đối chiếu trước khi dán công thức vào Excel. Đây **không phải** bộ tính
+toán Excel đầy đủ — app không cố hỗ trợ mọi hàm.
+
+### Lịch sử và yêu thích
+
+Mỗi công thức tạo ra được ghi vào Lịch sử ngay trên máy (50 mục gần nhất). Bấm
+vào một mục sẽ nạp lại **toàn bộ cấu hình**, không chỉ dán lại chữ. Bấm
+**★ Lưu yêu thích** để đặt tên riêng và ghim lên đầu trang.
+
+Nếu Workbook đã đổi và sheet/cột cũ không còn, app báo rõ *"Sheet Database không
+còn tồn tại trong Workbook hiện tại"* thay vì sinh công thức sai.
+
+### Chưa nhập Excel vẫn dùng được
+
+Ở mỗi ô chọn cột, đổi sang chế độ **Ô / Vùng** hoặc **Tuỳ ý** rồi gõ trực tiếp
+`A2`, `$A:$A`, `Database!B:B`.
+
+### Việc V2.0.0 không làm
+
+Không áp công thức thẳng vào Workbook, không tính lại toàn sheet, không macro,
+không Power Query, không Pivot, không AI, không backend. Luồng cố định là:
+dựng công thức → xem trước → sao chép → dán vào Excel.
+
+---
+
 ## Quy tắc chuyển giá trị
 
 | Ô nhập | Kết quả |
@@ -256,15 +352,35 @@ Mã VBA gốc được giữ trong `docs/` để đối chiếu.
 ├── assets/
 │   ├── css/styles.css
 │   ├── js/
-│   │   ├── generator.js   ← lõi sinh SQL, không phụ thuộc DOM
-│   │   ├── grid.js        ← lưới nhập liệu, dán từ Excel
-│   │   └── app.js         ← ghép giao diện với lõi
+│   │   ├── generator.js          ← lõi sinh SQL, không phụ thuộc DOM
+│   │   ├── grid.js               ← lưới nhập liệu, dán từ Excel
+│   │   ├── workbook.js           ← Workbook dùng chung cho 2 workspace
+│   │   ├── formula-engine.js     ← lõi sinh công thức, không phụ thuộc DOM
+│   │   ├── formula-presets.js    ← danh mục công cụ + schema builder
+│   │   ├── formula-explainer.js  ← giải thích + mô phỏng kết quả
+│   │   ├── formula-history.js    ← lịch sử, yêu thích, thiết lập
+│   │   ├── formula-helper.js     ← giao diện Formula Helper
+│   │   └── app.js                ← app shell, ghép mọi thứ lại
 │   └── vendor/
 │       ├── xlsx.core.min.js      ← SheetJS 0.18.5, dùng để đọc file Excel
 │       └── SheetJS-LICENSE.txt   ← Apache-2.0
+├── tests/
+│   ├── formula-engine.test.js    ← 61 test cho bộ sinh công thức
+│   └── app-smoke.test.js         ← 50 test tích hợp (cần jsdom)
 └── docs/
     ├── Module1.bas        ← GetInsertSQL gốc
     └── Module2.bas        ← UpdateSQL gốc
+```
+
+Hai lõi `generator.js` và `formula-engine.js` tách bạch: Gen Script không biết gì
+về công thức Excel, Formula Helper không biết gì về SQL. Cả hai cùng đọc
+`workbook.js`.
+
+### Chạy test
+
+```bash
+node tests/formula-engine.test.js     # không cần cài gì thêm
+npm install jsdom && node tests/app-smoke.test.js
 ```
 
 `generator.js` không đụng tới DOM nên tái sử dụng được ở Node:
@@ -280,6 +396,35 @@ const out = window.SqlGen.buildInsert('DM_TrangThai', [
 
 console.log(out.sql, out.warnings, out.stats);
 ```
+
+---
+
+## Changelog
+
+### V2.0.0
+
+**Mới**
+
+- Workspace **Formula Helper** với 15 công cụ theo nhu cầu nghiệp vụ.
+- Chọn nền tảng **Microsoft Excel** hoặc **Google Sheets**.
+- Dấu phân cách `,` / `;` — tự động hoặc chọn tay, có ghi nhớ.
+- Tự escape tên sheet có khoảng trắng và ký tự đặc biệt.
+- Xem trước kết quả bằng JavaScript trên vài chục dòng đầu.
+- Giải thích từng thành phần công thức và cảnh báo các trường hợp dễ sai.
+- Lịch sử công thức và mục yêu thích, nạp lại được cả cấu hình.
+- Thư viện hàm tra nhanh công dụng và ví dụ.
+- Hướng dẫn riêng cho từng workspace qua nút **Hướng dẫn**.
+
+**Cải tiến**
+
+- Tách `WorkbookState` khỏi bộ sinh SQL; hai workspace dùng chung một Workbook.
+- Chia nhỏ JavaScript thành các module theo trách nhiệm.
+- Bộ test tự động cho lõi sinh công thức và luồng tích hợp.
+
+**Không đổi**
+
+- Toàn bộ chức năng Gen Script của `V1.5.0` giữ nguyên: INSERT, UPDATE, SELECT,
+  lưới dữ liệu, tab bảng, kiểu dữ liệu cột, nhập Excel, theme, phím tắt.
 
 ---
 

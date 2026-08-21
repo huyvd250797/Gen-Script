@@ -1131,5 +1131,16 @@
   };
 
   Grid.parseClipboard = parseClipboard;
+  /** Vùng chọn hiện tại — dùng cho Formula Helper (§28 §29). */
+  Grid.prototype.getSelection = function () {
+    var s = this._selectionRange();
+    return {
+      active: { row: this.active.r, col: this.active.c },
+      range: { r1: s.r1, c1: s.c1, r2: s.r2, c2: s.c2 },
+      column: this.active.c,
+      header: (this.data[0] && this.data[0][this.active.c]) || ''
+    };
+  };
+
   global.Grid = Grid;
 })(window);
