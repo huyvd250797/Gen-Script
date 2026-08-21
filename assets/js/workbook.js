@@ -1,9 +1,8 @@
 /*!
- * workbook.js — Kho dữ liệu Workbook dùng chung cho Gen Script và Formula Helper.
+ * workbook.js — API đọc workbook cho Formula Helper.
  *
- * Module này KHÔNG sở hữu bản sao dữ liệu. Nó gắn (bind) vào state đang có của
- * app.js để tránh nhân đôi dataset (yêu cầu hiệu năng §170), rồi cung cấp một
- * API đọc ổn định cho Formula Helper.
+ * Module này KHÔNG sở hữu bản sao dữ liệu. Nó gắn (bind) vào workbook riêng do
+ * app.js quản lý, rồi cung cấp một API đọc ổn định cho Formula Helper.
  */
 (function (global) {
   'use strict';

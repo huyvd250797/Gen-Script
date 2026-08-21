@@ -92,7 +92,7 @@ is('sinh INSERT vẫn chạy',
   win.SqlGen.build('insert', 'DM_Test', [['Ma', 'Ten'], ['1', 'A']], { dialect: 'mssql', identityInsert: false })
     .sql.indexOf('INSERT INTO [DM_Test]') === 0, true);
 ok('tab bảng render', doc.querySelectorAll('.sheet-tabs .tab').length >= 1);
-ok('phiên bản hiển thị V2.0.0', doc.querySelector('.app-version').textContent === 'V2.0.0');
+ok('phiên bản hiển thị V2.4.0', doc.querySelector('.app-version').textContent === 'V2.4.0');
 
 console.log('\n— Workspace switch (§7 §200)');
 var wsButtons = doc.querySelectorAll('.ws-btn');
@@ -100,11 +100,9 @@ is('có 2 workspace', wsButtons.length, 2);
 ok('Gen Script đang active', wsButtons[0].classList.contains('is-on'));
 ok('pane Formula đang ẩn', doc.getElementById('workspaceFormula').hidden);
 
-// Nạp dữ liệu vào workbook giống như import Excel
-var app = null;
+// Nạp dữ liệu vào workbook riêng của Formula Helper giống như import Excel
 win.Workbook.setFileName('SinhVien.xlsx');
 
-// Truy cập state qua Workbook (đã bind vào state của app.js)
 var sheets = win.Workbook.getSheets();
 sheets.push({
   name: 'SinhVien',
@@ -127,13 +125,17 @@ sheets.push({
   whereColumns: 1, selectWhereColumns: 0, selectWhereMode: 'matchRows', columnTypes: []
 });
 
-console.log('\n— Shared Workbook (§10 §200)');
-is('đọc được 3 sheet', win.Workbook.getSheets().length, 3);
+console.log('\n— Formula Workbook riêng (§10 §200)');
+is('Formula workbook đọc được 3 sheet', win.Workbook.getSheets().length, 3);
 is('tên cột lấy từ dòng đầu', win.Workbook.getHeaders(1)[0].name, 'MaSinhVien');
 is('số dòng dữ liệu', win.Workbook.getDataRowCount(1), 4);
 var flat = win.Workbook.getAllFields().map(function (f) { return f.label; });
 ok('danh sách field phẳng có SinhVien.MaSinhVien', flat.indexOf('SinhVien.MaSinhVien') !== -1);
 ok('sheet có khoảng trắng nằm trong danh sách', flat.indexOf('CONFIG - Process.IDSinhVien') !== -1);
+ok('Gen Script không tự nhận sheet Formula',
+  Array.prototype.every.call(doc.querySelectorAll('.sheet-tabs .tab-name'), function (n) {
+    return n.textContent !== 'SinhVien';
+  }));
 
 console.log('\n— Chuyển sang Formula Helper');
 wsButtons[1].dispatchEvent(new win.Event('click', { bubbles: true }));
@@ -145,10 +147,22 @@ ok('Workbook không mất dữ liệu', win.Workbook.getSheets().length === 3);
 console.log('\n— Formula Helper Home (§14 §134)');
 var cards = doc.querySelectorAll('.fh-card');
 ok('có thẻ công cụ', cards.length >= 12);
+ok('panel review ẩn mặc định', doc.querySelector('.fh-review-overlay').hidden);
+ok('có nút xem kết quả', Array.prototype.some.call(doc.querySelectorAll('.fh-bar-actions button'), function (b) {
+  return b.textContent === 'Xem kết quả';
+}));
+ok('Home ẩn lưới dữ liệu', doc.querySelector('.fh-data-grid-panel').hidden);
+ok('Home chưa hiện nút sidebar công cụ', Array.prototype.every.call(doc.querySelectorAll('.fh-bar-actions button'), function (b) {
+  return b.hidden || b.textContent !== 'Ẩn thanh công cụ';
+}));
 ok('panel Workbook hiện tên file', doc.querySelector('.fh-wb-file strong').textContent === 'SinhVien.xlsx');
 is('liệt kê đủ sheet', doc.querySelectorAll('.fh-wb-sheet').length, 3);
 
 console.log('\n— Đổi Sheet ngay trong Formula Helper (§111)');
+Array.prototype.filter.call(doc.querySelectorAll('.fh-bar-actions button'), function (b) {
+  return b.textContent === 'Xem kết quả';
+})[0].dispatchEvent(new win.Event('click', { bubbles: true }));
+ok('mở được panel xem kết quả', !doc.querySelector('.fh-review-overlay').hidden);
 var sheetBtns = doc.querySelectorAll('.fh-wb-sheet');
 sheetBtns[1].dispatchEvent(new win.Event('click', { bubbles: true }));
 is('sheet đang mở là SinhVien', win.Workbook.getSheetName(win.Workbook.getActiveIndex()), 'SinhVien');
@@ -169,6 +183,21 @@ ok('tìm "xlookup" ra Tra cứu dữ liệu',
 
 console.log('\n— Dựng công thức tra cứu qua UI (§222)');
 win.FormulaHelper.openTool('lookup');
+ok('chọn công cụ thì hiện lưới', !doc.querySelector('.fh-data-grid-panel').hidden);
+ok('lưới dữ liệu render được trong tool view', !!doc.querySelector('.fh-data-grid-host table.grid'));
+ok('workbench ở chế độ tool', doc.querySelector('.fh-workarea').classList.contains('is-tool'));
+var sidebarToggle = Array.prototype.filter.call(doc.querySelectorAll('.fh-bar-actions button'), function (b) {
+  return b.textContent === 'Ẩn thanh công cụ';
+})[0];
+ok('có nút ẩn thanh công cụ', !!sidebarToggle);
+sidebarToggle.dispatchEvent(new win.Event('click', { bubbles: true }));
+ok('ẩn được sidebar công cụ', doc.querySelector('.fh-tool-dock').classList.contains('is-collapsed'));
+sidebarToggle = Array.prototype.filter.call(doc.querySelectorAll('.fh-bar-actions button'), function (b) {
+  return b.textContent === 'Hiện thanh công cụ';
+})[0];
+sidebarToggle.dispatchEvent(new win.Event('click', { bubbles: true }));
+ok('hiện lại được sidebar công cụ', !doc.querySelector('.fh-tool-dock').classList.contains('is-collapsed'));
+is('lưới đang mở đúng sheet active', doc.querySelector('.fh-data-grid-meta strong').textContent, win.Workbook.getSheetName(win.Workbook.getActiveIndex()));
 var refSelects = doc.querySelectorAll('.fh-ref-select');
 ok('có 3 ô chọn cột', refSelects.length >= 3);
 
@@ -220,10 +249,20 @@ rowInput.dispatchEvent(new win.Event('input', { bubbles: true }));
 
 console.log('\n— Kiểm tra trùng qua UI (§223)');
 win.FormulaHelper.openTool('duplicate');
+ok('đổi công cụ vẫn giữ dữ liệu lưới', doc.querySelector('.fh-data-grid-meta strong').textContent === 'SinhVien');
 pick(doc.querySelector('.fh-ref-select'), 'SinhVien.MaSinhVien');
 is('công thức COUNTIF',
   doc.querySelector('.fh-formula-code').textContent,
   '=IF(COUNTIF($A:$A,A2)>1,"TRÙNG","")');
+
+console.log('\n— Quay lại chọn công cụ khác');
+doc.querySelector('.fh-back').dispatchEvent(new win.Event('click', { bubbles: true }));
+ok('quay lại Home thì ẩn lưới', doc.querySelector('.fh-data-grid-panel').hidden);
+ok('Home hiện lại danh sách công cụ', doc.querySelectorAll('.fh-card').length >= 12);
+win.FormulaHelper.openTool('duplicate');
+ok('chọn lại công cụ thì lưới hiện lại', !doc.querySelector('.fh-data-grid-panel').hidden);
+is('dữ liệu workbook vẫn ở sheet SinhVien', doc.querySelector('.fh-data-grid-meta strong').textContent, 'SinhVien');
+pick(doc.querySelector('.fh-ref-select'), 'SinhVien.MaSinhVien');
 
 console.log('\n— Xem trước kết quả bằng JavaScript (§95 §96)');
 // preview có debounce 300ms
@@ -258,10 +297,14 @@ var done = function () {
     doc.getElementById('btnHelp').dispatchEvent(new win.Event('click', { bubbles: true }));
     ok('ở Gen Script mở hướng dẫn Gen Script', doc.getElementById('helpDialog').open === true);
 
-    console.log('\n— Quay lại Gen Script, dữ liệu còn nguyên (§200)');
+    console.log('\n— Quay lại Gen Script, hai lưới vẫn tách riêng (§200)');
     ok('pane Gen Script hiện lại', !doc.getElementById('workspaceGenScript').hidden);
-    is('vẫn đủ 3 sheet', win.Workbook.getSheets().length, 3);
-    is('dữ liệu SinhVien còn nguyên', win.Workbook.getSheets()[1].data.length, 5);
+    is('Formula workbook vẫn đủ 3 sheet', win.Workbook.getSheets().length, 3);
+    is('dữ liệu Formula SinhVien còn nguyên', win.Workbook.getSheets()[1].data.length, 5);
+    ok('Gen Script vẫn không có tab SinhVien',
+      Array.prototype.every.call(doc.querySelectorAll('.sheet-tabs .tab-name'), function (n) {
+        return n.textContent !== 'SinhVien';
+      }));
 
     console.log('\n' + (fail === 0 ? '✔ ' : '✘ ') + pass + ' đạt, ' + fail + ' hỏng.\n');
     process.exit(fail ? 1 : 0);

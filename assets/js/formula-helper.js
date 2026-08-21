@@ -13,6 +13,7 @@
   var host = {
     toast: function () {},
     onImport: function () {},
+    onWorkbookEdit: function () {},
     getSelectedColumn: function () { return null; },
     setActiveSheet: function () {}
   };
@@ -23,6 +24,10 @@
     config: {},
     settings: null,
     showAdvanced: false,
+    gridOpen: false,
+    reviewOpen: false,
+    sidebarCollapsed: false,
+    sidebarWidth: 420,
     query: '',
     lastResult: null,
     previewTimer: null
@@ -30,6 +35,9 @@
 
   var root = null;
   var nodes = {};
+  var dataGrid = null;
+  var dataGridSheetIndex = -1;
+  var dataGridSyncing = false;
 
   /* ============================================================
    * Tiện ích DOM
@@ -94,6 +102,14 @@
     return ref;
   }
 
+  function selectedFormulaGridColumn() {
+    if (dataGrid && state.gridOpen && dataGridSheetIndex >= 0) {
+      var sel = dataGrid.getSelection();
+      if (sel) return { sheetIndex: dataGridSheetIndex, colIndex: sel.column };
+    }
+    return host.getSelectedColumn();
+  }
+
   function tool() { return state.toolId ? PRESETS.getTool(state.toolId) : null; }
 
   function buildConfig() {
@@ -154,6 +170,14 @@
     bar.appendChild(nodes.dataRow);
 
     var barActions = h('div', 'fh-bar-actions');
+    nodes.sidebarToggle = button('Ẩn thanh công cụ', 'btn btn-tiny', function () {
+      setSidebarCollapsed(!state.sidebarCollapsed);
+    });
+    barActions.appendChild(nodes.sidebarToggle);
+    nodes.resultToggle = button('Xem kết quả', 'btn btn-tiny', function () {
+      setReviewOpen(true);
+    });
+    barActions.appendChild(nodes.resultToggle);
     barActions.appendChild(button('Thư viện hàm', 'btn btn-tiny', function () {
       state.view = state.view === 'library' ? 'home' : 'library';
       renderPanel();
@@ -165,15 +189,99 @@
     bar.appendChild(barActions);
     root.appendChild(bar);
 
-    var body = h('div', 'fh-body');
+    nodes.workArea = h('div', 'fh-workarea');
+    nodes.dataGridPanel = h('section', 'fh-data-grid-panel');
+    nodes.workArea.appendChild(nodes.dataGridPanel);
+
+    nodes.toolDock = h('aside', 'fh-tool-dock');
+    nodes.resizeHandle = h('div', 'fh-tool-resizer');
+    nodes.resizeHandle.title = 'Kéo để đổi độ rộng thanh công cụ';
+    nodes.resizeHandle.addEventListener('mousedown', startSidebarResize);
+    nodes.toolDock.appendChild(nodes.resizeHandle);
     nodes.panel = h('div', 'fh-panel');
-    nodes.side = h('aside', 'fh-side');
-    body.appendChild(nodes.panel);
-    body.appendChild(nodes.side);
-    root.appendChild(body);
+    nodes.toolDock.appendChild(nodes.panel);
+    nodes.workArea.appendChild(nodes.toolDock);
+    root.appendChild(nodes.workArea);
+
+    nodes.reviewOverlay = h('div', 'fh-review-overlay');
+    nodes.reviewOverlay.hidden = true;
+    nodes.reviewOverlay.addEventListener('click', function (e) {
+      if (e.target === nodes.reviewOverlay) setReviewOpen(false);
+    });
+    var reviewShell = h('aside', 'fh-review-shell');
+    var reviewHead = h('div', 'fh-review-head');
+    var reviewTitle = h('div');
+    reviewTitle.appendChild(h('h3', null, 'Kết quả & Workbook'));
+    reviewTitle.appendChild(h('p', null, 'Xem preview, sheet hiện tại và kết quả mô phỏng khi cần đối chiếu.'));
+    reviewHead.appendChild(reviewTitle);
+    reviewHead.appendChild(button('×', 'fh-review-close', function () { setReviewOpen(false); }));
+    reviewShell.appendChild(reviewHead);
+    nodes.side = h('div', 'fh-review-content');
+    reviewShell.appendChild(nodes.side);
+    nodes.reviewOverlay.appendChild(reviewShell);
+    root.appendChild(nodes.reviewOverlay);
 
     renderPanel();
     renderSide();
+  }
+
+  function setSidebarCollapsed(collapsed) {
+    state.sidebarCollapsed = !!collapsed;
+    syncFormulaLayout();
+  }
+
+  function syncFormulaLayout() {
+    var inTool = state.view === 'tool';
+    var wasGridOpen = state.gridOpen;
+    state.gridOpen = inTool;
+    if (nodes.workArea) {
+      nodes.workArea.classList.toggle('is-tool', inTool);
+      nodes.workArea.classList.toggle('is-home', !inTool);
+    }
+    if (nodes.toolDock) {
+      nodes.toolDock.classList.toggle('is-collapsed', inTool && state.sidebarCollapsed);
+      nodes.toolDock.style.setProperty('--fh-toolbar-width', state.sidebarWidth + 'px');
+    }
+    if (nodes.sidebarToggle) {
+      nodes.sidebarToggle.hidden = !inTool;
+      nodes.sidebarToggle.textContent = state.sidebarCollapsed ? 'Hiện thanh công cụ' : 'Ẩn thanh công cụ';
+      nodes.sidebarToggle.classList.toggle('is-on', inTool && !state.sidebarCollapsed);
+    }
+    if (wasGridOpen !== state.gridOpen || (state.gridOpen && !dataGrid) || (!state.gridOpen && dataGrid)) {
+      renderDataGridPanel();
+    } else if (nodes.dataGridPanel) {
+      nodes.dataGridPanel.hidden = !state.gridOpen;
+    }
+  }
+
+  function startSidebarResize(e) {
+    if (state.view !== 'tool' || state.sidebarCollapsed || !nodes.toolDock) return;
+    e.preventDefault();
+    var startX = e.clientX;
+    var startWidth = nodes.toolDock.getBoundingClientRect().width || state.sidebarWidth;
+    var onMove = function (ev) {
+      var next = startWidth - (ev.clientX - startX);
+      state.sidebarWidth = Math.max(320, Math.min(680, Math.round(next)));
+      nodes.toolDock.style.setProperty('--fh-toolbar-width', state.sidebarWidth + 'px');
+    };
+    var onUp = function () {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.body.classList.remove('is-resizing-formula');
+    };
+    document.body.classList.add('is-resizing-formula');
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
+
+  function setReviewOpen(open) {
+    state.reviewOpen = !!open;
+    if (nodes.reviewOverlay) nodes.reviewOverlay.hidden = !state.reviewOpen;
+    if (nodes.resultToggle) {
+      nodes.resultToggle.textContent = state.reviewOpen ? 'Đang xem kết quả' : 'Xem kết quả';
+      nodes.resultToggle.classList.toggle('is-on', state.reviewOpen);
+    }
+    if (state.reviewOpen) renderSide();
   }
 
   function selectControl(label, options, value, onChange) {
@@ -212,11 +320,87 @@
   }
 
   /* ============================================================
+   * Lưới dữ liệu trong Formula Helper
+   * ========================================================= */
+
+  function renderDataGridPanel() {
+    if (!nodes.dataGridPanel) return;
+    if (dataGrid && !dataGridSyncing) commitDataGridToWorkbook();
+    dataGrid = null;
+    dataGridSheetIndex = -1;
+    clear(nodes.dataGridPanel);
+    nodes.dataGridPanel.hidden = !state.gridOpen;
+    if (!state.gridOpen) return;
+
+    var head = h('div', 'fh-data-grid-head');
+    var title = h('div', 'fh-data-grid-title');
+    title.appendChild(h('h3', null, 'Lưới dữ liệu Formula Helper'));
+    title.appendChild(h('p', null, 'Sửa, dán, fill, copy và xoá dữ liệu trực tiếp trên workbook riêng của Formula Helper.'));
+    head.appendChild(title);
+    head.appendChild(button('Nhập từ Excel', 'btn btn-tiny', function () { host.onImport(); }));
+    nodes.dataGridPanel.appendChild(head);
+
+    if (!WB.getSheets().length) {
+      var empty = h('div', 'fh-data-grid-empty');
+      empty.appendChild(h('p', null, 'Chưa có Workbook. Nhập file Excel hoặc tạo dữ liệu trên lưới Formula Helper.'));
+      nodes.dataGridPanel.appendChild(empty);
+      return;
+    }
+
+    var meta = h('div', 'fh-data-grid-meta');
+    var active = WB.getActiveIndex();
+    meta.appendChild(h('strong', null, WB.getSheetName(active) || 'Sheet'));
+    meta.appendChild(h('span', null, WB.getHeaders(active).length + ' cột · ' + WB.getDataRowCount(active) + ' dòng dữ liệu'));
+    nodes.dataGridPanel.appendChild(meta);
+
+    nodes.dataGridHost = h('div', 'fh-data-grid-host grid-scroll');
+    nodes.dataGridPanel.appendChild(nodes.dataGridHost);
+    ensureDataGrid();
+    syncDataGridFromWorkbook();
+  }
+
+  function ensureDataGrid() {
+    if (dataGrid || !global.Grid || !nodes.dataGridHost) return;
+    dataGrid = new global.Grid(nodes.dataGridHost, {
+      onChange: commitDataGridToWorkbook,
+      onStatus: host.toast,
+      onHistoryChange: function () {},
+      onColumnTypesChange: commitDataGridToWorkbook,
+      mode: 'insert'
+    });
+  }
+
+  function syncDataGridFromWorkbook() {
+    if (!dataGrid || !state.gridOpen || !WB.getSheets().length) return;
+    var index = WB.getActiveIndex();
+    var sheet = WB.getSheet(index);
+    if (!sheet) return;
+    dataGridSyncing = true;
+    dataGridSheetIndex = index;
+    dataGrid.setColumnTypes(sheet.columnTypes || []);
+    dataGrid.setMode('insert', 0);
+    dataGrid.setData(sheet.data || [[]]);
+    setTimeout(function () { dataGridSyncing = false; }, 0);
+  }
+
+  function commitDataGridToWorkbook() {
+    if (dataGridSyncing || !dataGrid || dataGridSheetIndex < 0) return;
+    var sheet = WB.getSheet(dataGridSheetIndex);
+    if (!sheet) return;
+    var oldHeader = ((sheet.data && sheet.data[0]) || []).join('\u001f');
+    sheet.data = dataGrid.getData();
+    sheet.columnTypes = dataGrid.getColumnTypes();
+    var newHeader = ((sheet.data && sheet.data[0]) || []).join('\u001f');
+    host.onWorkbookEdit(oldHeader === newHeader ? 'data' : 'structure');
+  }
+
+  /* ============================================================
    * Panel: Home / Tool / Library
    * ========================================================= */
 
   function renderPanel() {
     if (!nodes.panel) return;
+    syncFormulaLayout();
     clear(nodes.panel);
     if (state.view === 'tool') renderTool();
     else if (state.view === 'library') renderLibrary();
@@ -361,6 +545,7 @@
     state.config = JSON.parse(JSON.stringify(item.config));
     delete state.config.__toolId;
     state.view = 'tool';
+    state.sidebarCollapsed = false;
 
     if (item.platform) saveSettings({ platform: item.platform });
 
@@ -392,6 +577,7 @@
     if (!t) return;
     state.toolId = id;
     state.view = 'tool';
+    state.sidebarCollapsed = false;
     state.config = {};
     Object.keys(t.defaults || {}).forEach(function (k) { state.config[k] = t.defaults[k]; });
     applySmartDefaults(t);
@@ -400,7 +586,7 @@
 
   /** Dùng cột đang chọn trên Grid làm giá trị mặc định (§28 §150 §151). */
   function applySmartDefaults(t) {
-    var sel = host.getSelectedColumn();
+    var sel = selectedFormulaGridColumn();
     if (!sel) return;
     var ref = makeRef(sel.sheetIndex, sel.colIndex);
     (t.schema || []).forEach(function (field) {
@@ -425,6 +611,8 @@
     var head = h('div', 'fh-head');
     head.appendChild(button('‹ Quay lại', 'btn btn-tiny fh-back', function () {
       state.view = 'home';
+      state.toolId = null;
+      state.query = '';
       renderPanel();
     }));
     var title = h('div', 'fh-head-text');
@@ -616,7 +804,7 @@
 
       if (opts.useSelected) {
         var useBtn = button('Dùng cột đang chọn', 'btn btn-tiny fh-use-selected', function () {
-          var s = host.getSelectedColumn();
+          var s = selectedFormulaGridColumn();
           if (!s) { host.toast('Chưa chọn cột nào trên lưới dữ liệu.'); return; }
           onChange(makeRef(s.sheetIndex, s.colIndex));
           renderPanel();
@@ -1242,7 +1430,7 @@
   }
 
   /* ============================================================
-   * Panel bên phải: Workbook + Preview
+   * Review ẩn: Workbook + Preview
    * ========================================================= */
 
   function renderSide() {
@@ -1306,6 +1494,7 @@
     options = options || {};
     if (options.toast) host.toast = options.toast;
     if (options.onImport) host.onImport = options.onImport;
+    if (options.onWorkbookEdit) host.onWorkbookEdit = options.onWorkbookEdit;
     if (options.getSelectedColumn) host.getSelectedColumn = options.getSelectedColumn;
     if (options.setActiveSheet) host.setActiveSheet = options.setActiveSheet;
 
@@ -1314,7 +1503,7 @@
 
     // Chỉ dựng lại form khi workbook thay đổi về cấu trúc. Với thay đổi dữ liệu
     // thường ('data') chỉ làm mới panel phải, tránh mất focus khi người dùng đang gõ.
-    var STRUCTURAL = ['import', 'clear', 'sheet', 'workspace'];
+    var STRUCTURAL = ['import', 'clear', 'sheet', 'workspace', 'structure'];
     WB.subscribe(function (reason) {
       var structural = STRUCTURAL.indexOf(reason) !== -1;
       if (reason === 'import' || reason === 'clear') {
@@ -1323,6 +1512,7 @@
         if (issues.length) host.toast(issues[0]);
       }
       renderSide();
+      if (structural) renderDataGridPanel();
       if (structural) renderPanel();
       else if (state.view === 'tool') updateOutput();
     });
