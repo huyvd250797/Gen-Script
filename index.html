@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Gen Script — Sinh câu lệnh INSERT / UPDATE / SELECT từ bảng dữ liệu</title>
-<meta name="description" content="Dán dữ liệu từ Excel, nhận ngay script INSERT, UPDATE hoặc SELECT. Dòng đầu tiên là tên cột, tên sheet là tên bảng.">
+<title>ASC-GenScript — Gen Script SQL &amp; Formula Helper cho Excel / Google Sheets</title>
+<meta name="description" content="Dán dữ liệu từ Excel, nhận ngay script INSERT, UPDATE, SELECT hoặc công thức Excel / Google Sheets. Một Workbook dùng chung cho cả hai workspace.">
 <meta name="color-scheme" content="dark light">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230D1620'/%3E%3Cpath d='M8 11h16M8 16h10M8 21h13' stroke='%2348C9B0' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,6 +35,11 @@
       <em>bảng dữ liệu &rarr; câu lệnh SQL</em>
     </span>
   </div>
+  <nav class="workspace-switch" role="tablist" aria-label="Chọn workspace">
+    <button type="button" class="ws-btn is-on" data-workspace="genscript" role="tab" aria-selected="true">Gen Script</button>
+    <button type="button" class="ws-btn" data-workspace="formula" role="tab" aria-selected="false">Formula Helper</button>
+  </nav>
+
   <div class="brand-actions">
     <button type="button" class="theme-toggle" id="btnTheme" aria-pressed="true" aria-label="Đổi giao diện sáng/tối" title="Đổi giao diện sáng/tối">
       <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
@@ -50,6 +55,8 @@
     <button type="button" class="btn btn-ghost" id="btnHelp" aria-haspopup="dialog">Hướng dẫn</button>
   </div>
 </header>
+
+<div class="workspace-pane" id="workspaceGenScript">
 
 <div class="toolbar">
   <div class="field field-table">
@@ -121,9 +128,15 @@
   </section>
 </main>
 
+</div><!-- /#workspaceGenScript -->
+
+<div class="workspace-pane" id="workspaceFormula" hidden>
+  <div class="fh-root" id="formulaRoot"></div>
+</div>
+
 <footer class="app-footer" aria-label="Thông tin ứng dụng">
   <strong class="app-copyright">© 2026 HuyVo. All rights reserved.</strong>
-  <span class="app-version">V1.5.0</span>
+  <span class="app-version">V2.0.0</span>
 </footer>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -162,6 +175,52 @@
   <form method="dialog"><button class="btn btn-primary">Đóng</button></form>
 </dialog>
 
+<dialog class="help" id="formulaHelpDialog" aria-labelledby="formulaHelpTitle">
+  <div class="help-shell">
+    <header class="help-head">
+      <h3 id="formulaHelpTitle">Hướng dẫn Formula Helper</h3>
+      <button type="button" class="review-close" id="btnFormulaHelpClose" aria-label="Đóng hướng dẫn" title="Đóng">×</button>
+    </header>
+    <div class="help-body">
+      <ol>
+        <li>Nhập file Excel, hoặc dùng luôn Workbook đang mở ở Gen Script.</li>
+        <li>Bấm <strong>Formula Helper</strong> trên thanh tiêu đề.</li>
+        <li>Chọn việc bạn muốn làm — tra cứu, kiểm tra trùng, lọc dữ liệu…</li>
+        <li>Chọn Sheet và Cột theo <strong>tên cột</strong>, không cần nhớ A/B/C.</li>
+        <li>Kiểm tra khu vực <strong>Công thức</strong> và phần Giải thích bên dưới.</li>
+        <li>Chọn nền tảng <strong>Microsoft Excel</strong> hoặc <strong>Google Sheets</strong>.</li>
+        <li>Chọn dấu phân cách <code>,</code> hoặc <code>;</code> cho khớp với máy bạn.</li>
+        <li>Bấm <strong>Sao chép công thức</strong>.</li>
+        <li>Dán vào Excel hoặc Google Sheets.</li>
+      </ol>
+
+      <h3>Ví dụ — tra cứu IDSinhVien</h3>
+      <ul>
+        <li>Giá trị cần tìm: <code>SinhVien.MaSinhVien</code></li>
+        <li>Cột dùng để tìm: <code>Database.MaSinhVien</code></li>
+        <li>Cột trả về: <code>Database.IDSinhVien</code></li>
+      </ul>
+      <p>Công thức nhận được:</p>
+      <pre><code>=XLOOKUP(A2,Database!B:B,Database!A:A,"")</code></pre>
+
+      <h3>Dấu phân cách</h3>
+      <p>Một số máy Excel dùng dấu phẩy <code>,</code>, một số dùng chấm phẩy <code>;</code> tuỳ theo cài đặt vùng của Windows. Nếu dán công thức vào Excel mà báo lỗi, hãy đổi thiết lập <strong>Dấu phân cách</strong> rồi sao chép lại. Lựa chọn này được ghi nhớ cho những lần sau.</p>
+
+      <h3>Sheet có khoảng trắng</h3>
+      <p>Sheet tên <code>CONFIG - Process</code> sẽ tự được bọc nháy đơn thành <code>&#39;CONFIG - Process&#39;!A:A</code>, bạn không cần tự thêm.</p>
+
+      <h3>Chưa có Workbook?</h3>
+      <p>Formula Helper vẫn dùng được. Ở mỗi ô chọn cột, đổi sang chế độ <strong>Ô / Vùng</strong> hoặc <strong>Tuỳ ý</strong> rồi gõ trực tiếp <code>A2</code>, <code>$A:$A</code> hay <code>Database!B:B</code>.</p>
+
+      <h3>Lịch sử và yêu thích</h3>
+      <p>Mỗi công thức tạo ra được lưu vào Lịch sử ngay trên máy này. Bấm vào một mục để nạp lại <em>toàn bộ cấu hình</em>, không chỉ sao chép chữ. Bấm <strong>★ Lưu yêu thích</strong> để đặt tên riêng và ghim lên đầu trang.</p>
+    </div>
+    <footer class="help-foot">
+      <button type="button" class="btn btn-primary" id="btnFormulaHelpDone">Đóng</button>
+    </footer>
+  </div>
+</dialog>
+
 <dialog class="script-review" id="scriptDialog" aria-labelledby="scriptDialogTitle">
   <div class="review-shell">
     <header class="review-head">
@@ -193,6 +252,12 @@
 <script src="assets/vendor/xlsx.core.min.js"></script>
 <script src="assets/js/generator.js"></script>
 <script src="assets/js/grid.js"></script>
+<script src="assets/js/workbook.js"></script>
+<script src="assets/js/formula-engine.js"></script>
+<script src="assets/js/formula-presets.js"></script>
+<script src="assets/js/formula-explainer.js"></script>
+<script src="assets/js/formula-history.js"></script>
+<script src="assets/js/formula-helper.js"></script>
 <script src="assets/js/app.js"></script>
 </body>
 </html>
