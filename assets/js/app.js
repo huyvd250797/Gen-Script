@@ -1,8 +1,7 @@
 /*!
  * app.js — App shell: ghép lưới nhập liệu, bộ sinh SQL và Formula Helper.
  *
- * V2.0.0: state.sheets trở thành Shared Workbook, được Workbook.bind() gắn vào
- * để Formula Helper đọc chung mà không cần import lại Excel.
+ * V2.2.0: Gen Script và Formula Helper dùng workbook/lưới riêng.
  */
 (function () {
   'use strict';
@@ -10,11 +9,13 @@
   var LEGACY_STORE_KEY = 'genscript.v1';
   var DEVICE_ID_KEY = 'genscript.device.v1';
   var DATA_STORE_PREFIX = 'genscript.data.v2.';
+  var FORMULA_DATA_STORE_PREFIX = 'genscript.formulaWorkbook.v1.';
   var THEME_STORE_PREFIX = 'genscript.theme.v1.';
   var WORKSPACE_STORE_PREFIX = 'genscript.workspace.v1.';
   var storage = getStorage();
   var deviceId = ensureDeviceId();
   var STORE_KEY = DATA_STORE_PREFIX + deviceId;
+  var FORMULA_STORE_KEY = FORMULA_DATA_STORE_PREFIX + deviceId;
   var THEME_KEY = THEME_STORE_PREFIX + deviceId;
   var WORKSPACE_KEY = WORKSPACE_STORE_PREFIX + deviceId;
   var APP_LOADING_MS = 1500;
@@ -70,6 +71,12 @@
     theme: 'dark',
     sqlFormat: 'pretty',
     workspace: 'genscript'
+  };
+
+  var formulaWorkbook = {
+    activeSheet: 0,
+    sheets: [],
+    fileName: ''
   };
 
   var grid = null;
@@ -173,9 +180,10 @@
 
   /* ------------------------------------------------------------ sheets */
 
-  function newSheet(name, data) {
+  function newSheet(name, data, owner) {
+    var list = owner && owner.sheets ? owner.sheets : state.sheets;
     return {
-      name: name || 'Bang_' + (state.sheets.length + 1),
+      name: name || 'Bang_' + (list.length + 1),
       data: data && data.length ? data : [[]],
       whereColumns: 1,
       selectWhereColumns: 0,
@@ -360,10 +368,7 @@
     return name === 'formula' ? 'formula' : 'genscript';
   }
 
-  /**
-   * Chuyển giữa Gen Script và Formula Helper. Workbook không bị đụng tới nên
-   * người dùng không phải import lại Excel (§10 §200).
-   */
+  /** Chuyển giữa hai workspace, mỗi workspace giữ workbook/lưới riêng. */
   function setWorkspace(name, skipPersist) {
     state.workspace = normalizeWorkspace(name);
     document.body.dataset.workspace = state.workspace;
@@ -381,6 +386,8 @@
       commitActiveSheet();
       ensureFormulaHelper();
       notifyWorkbook('workspace');
+    } else if (grid && state.sheets.length) {
+      selectSheet(state.activeSheet, true);
     }
     if (!skipPersist) storageSet(WORKSPACE_KEY, state.workspace);
   }
@@ -393,12 +400,17 @@
     window.FormulaHelper.init(el.formulaRoot, {
       toast: toast,
       onImport: function () { el.fileInput.click(); },
+      onWorkbookEdit: function (reason) {
+        persistFormulaWorkbook();
+        notifyWorkbook(reason || 'data');
+      },
       getSelectedColumn: function () {
-        if (!grid) return null;
-        return { sheetIndex: state.activeSheet, colIndex: grid.getSelection().column };
+        return null;
       },
       setActiveSheet: function (index) {
-        selectSheet(index);
+        var max = Math.max(0, formulaWorkbook.sheets.length - 1);
+        formulaWorkbook.activeSheet = Math.max(0, Math.min(index | 0, max));
+        persistFormulaWorkbook();
         notifyWorkbook('sheet');
       }
     });
@@ -482,7 +494,6 @@
     commitActiveSheet();
     if (sheet && sheet.name !== oldName) renderTabs();
     persist();
-    notifyWorkbook('data');
   }
 
   function render(showReview) {
@@ -589,54 +600,116 @@
     } catch (err) { return false; }
   }
 
+  function persistFormulaWorkbook() {
+    storageSet(FORMULA_STORE_KEY, JSON.stringify(formulaWorkbook));
+  }
+
+  function restoreFormulaWorkbook() {
+    var raw = storageGet(FORMULA_STORE_KEY);
+    if (!raw) return false;
+    try {
+      var saved = JSON.parse(raw);
+      if (!saved || !saved.sheets || !saved.sheets.length) return false;
+      formulaWorkbook.sheets = saved.sheets;
+      formulaWorkbook.activeSheet = Math.min(saved.activeSheet || 0, formulaWorkbook.sheets.length - 1);
+      formulaWorkbook.fileName = saved.fileName || '';
+      return true;
+    } catch (err) { return false; }
+  }
+
+  function ensureFormulaWorkbook() {
+    if (!formulaWorkbook.sheets.length) {
+      formulaWorkbook.sheets = [newSheet('FormulaData', null, formulaWorkbook)];
+      formulaWorkbook.activeSheet = 0;
+      formulaWorkbook.fileName = '';
+    }
+  }
+
   /* ------------------------------------------------------------ import */
 
   function sanitizeName(name) {
     return String(name || '').replace(/[\r\n\t]/g, ' ').trim() || 'Bang';
   }
 
+  function makeImportedSheet(name, data) {
+    return {
+      name: sanitizeName(name),
+      data: data,
+      whereColumns: 1,
+      selectWhereColumns: 0,
+      selectWhereMode: 'matchRows',
+      columnTypes: []
+    };
+  }
+
+  function sheetHasValues(sheet) {
+    var data = (sheet && sheet.data) || [];
+    for (var r = 0; r < data.length; r++) {
+      var row = data[r] || [];
+      for (var c = 0; c < row.length; c++) {
+        if (String(row[c] == null ? '' : row[c]).trim() !== '') return true;
+      }
+    }
+    return false;
+  }
+
+  function isInitialFormulaWorkbook(target) {
+    return target && target.sheets && target.sheets.length === 1 &&
+      target.sheets[0].name === 'FormulaData' && !target.fileName &&
+      !sheetHasValues(target.sheets[0]);
+  }
+
   function importWorkbook(file) {
     var reader = new FileReader();
     reader.onload = function (e) {
       var wb;
+      var xlsx = window.XLSX;
+      if (!xlsx || !xlsx.read || !xlsx.utils) {
+        toast('Không đọc được file: thư viện Excel chưa được tải. Hãy tải lại app rồi thử lại.');
+        return;
+      }
       try {
-        wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: false });
+        wb = xlsx.read(new Uint8Array(e.target.result), { type: 'array', cellDates: false });
       } catch (err) {
         toast('Không đọc được file: ' + err.message);
         return;
       }
-      // Ghi lại bảng đang mở trước khi đổi danh sách, rồi bỏ bảng mẫu
-      // nếu người dùng chưa động tới nó.
-      commitActiveSheet();
-      if (state.sheets.length === 1 && state.sheets[0].seed) state.sheets = [];
+      var target = state.workspace === 'formula' ? formulaWorkbook : state;
+      var targetIsFormula = target === formulaWorkbook;
+      if (!targetIsFormula) commitActiveSheet();
+      if (target.sheets.length === 1 && target.sheets[0].seed) target.sheets = [];
+      if (targetIsFormula && isInitialFormulaWorkbook(target)) target.sheets = [];
       var added = 0;
       wb.SheetNames.forEach(function (name) {
         var ws = wb.Sheets[name];
         if (!ws) return;
-        var rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '', blankrows: false });
+        var rows = xlsx.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '', blankrows: false });
         if (!rows.length) return;
         var clean = rows.map(function (r) {
           return r.map(function (v) { return v == null ? '' : String(v); });
         });
-        state.sheets.push({
-          name: sanitizeName(name),
-          data: clean,
-          whereColumns: 1,
-          selectWhereColumns: 0,
-          selectWhereMode: 'matchRows',
-          columnTypes: []
-        });
+        target.sheets.push(makeImportedSheet(name, clean));
         added++;
       });
       if (!added) {
-        if (!state.sheets.length) state.sheets = [newSheet('Bang_1')];
-        renderTabs();
+        if (!target.sheets.length) target.sheets = [newSheet(targetIsFormula ? 'FormulaData' : 'Bang_1', null, target)];
+        if (!targetIsFormula) renderTabs();
+        else {
+          persistFormulaWorkbook();
+          notifyWorkbook('import');
+        }
         toast('File không có sheet nào chứa dữ liệu.');
         return;
       }
-      if (window.Workbook) window.Workbook.setFileName(file.name);
-      selectSheet(state.sheets.length - added, true);
-      notifyWorkbook('import');
+      target.activeSheet = target.sheets.length - added;
+      if (targetIsFormula) {
+        target.fileName = file.name;
+        if (window.Workbook) window.Workbook.setFileName(file.name);
+        persistFormulaWorkbook();
+        notifyWorkbook('import');
+      } else {
+        selectSheet(target.activeSheet, true);
+      }
       toast('Đã nạp ' + added + ' bảng từ ' + file.name);
     };
     reader.onerror = function () { toast('Không đọc được file.'); };
@@ -709,8 +782,12 @@
   function init() {
     applyTheme(storageGet(THEME_KEY) || 'dark');
 
-    // Workbook dùng chung: gắn thẳng vào state để không nhân đôi dataset (§11 §170).
-    if (window.Workbook) window.Workbook.bind(state);
+    restoreFormulaWorkbook();
+    ensureFormulaWorkbook();
+    if (window.Workbook) {
+      window.Workbook.bind(formulaWorkbook);
+      window.Workbook.setFileName(formulaWorkbook.fileName || '');
+    }
     if (window.FormulaStore) window.FormulaStore.scopeTo(deviceId);
 
     grid = new Grid(el.gridHost, {
@@ -799,7 +876,6 @@
     $('btnClear').addEventListener('click', function () {
       if (confirm('Xoá toàn bộ dữ liệu của bảng "' + el.tableName.value + '"?')) {
         grid.clear();
-        notifyWorkbook('clear');
       }
     });
 

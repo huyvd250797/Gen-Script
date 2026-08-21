@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ASC-GenScript — Gen Script SQL &amp; Formula Helper cho Excel / Google Sheets</title>
-<meta name="description" content="Dán dữ liệu từ Excel, nhận ngay script INSERT, UPDATE, SELECT hoặc công thức Excel / Google Sheets. Một Workbook dùng chung cho cả hai workspace.">
+<meta name="description" content="Dán dữ liệu từ Excel, nhận ngay script INSERT, UPDATE, SELECT hoặc công thức Excel / Google Sheets. Gen Script và Formula Helper dùng lưới dữ liệu riêng.">
 <meta name="color-scheme" content="dark light">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230D1620'/%3E%3Cpath d='M8 11h16M8 16h10M8 21h13' stroke='%2348C9B0' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -136,7 +136,7 @@
 
 <footer class="app-footer" aria-label="Thông tin ứng dụng">
   <strong class="app-copyright">© 2026 HuyVo. All rights reserved.</strong>
-  <span class="app-version">V2.0.0</span>
+  <span class="app-version">V2.2.0</span>
 </footer>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -183,8 +183,9 @@
     </header>
     <div class="help-body">
       <ol>
-        <li>Nhập file Excel, hoặc dùng luôn Workbook đang mở ở Gen Script.</li>
+        <li>Nhập file Excel khi đang ở Formula Helper, hoặc mở lưới riêng và dán dữ liệu trực tiếp.</li>
         <li>Bấm <strong>Formula Helper</strong> trên thanh tiêu đề.</li>
+        <li>Bấm <strong>Mở lưới dữ liệu</strong> nếu muốn sửa, dán, fill hoặc xoá dữ liệu trực tiếp như Excel ngay trong Formula Helper.</li>
         <li>Chọn việc bạn muốn làm — tra cứu, kiểm tra trùng, lọc dữ liệu…</li>
         <li>Chọn Sheet và Cột theo <strong>tên cột</strong>, không cần nhớ A/B/C.</li>
         <li>Kiểm tra khu vực <strong>Công thức</strong> và phần Giải thích bên dưới.</li>
@@ -211,6 +212,9 @@
 
       <h3>Chưa có Workbook?</h3>
       <p>Formula Helper vẫn dùng được. Ở mỗi ô chọn cột, đổi sang chế độ <strong>Ô / Vùng</strong> hoặc <strong>Tuỳ ý</strong> rồi gõ trực tiếp <code>A2</code>, <code>$A:$A</code> hay <code>Database!B:B</code>.</p>
+
+      <h3>Lưới dữ liệu riêng</h3>
+      <p>Gen Script và Formula Helper dùng hai lưới/workbook độc lập. Import Excel ở workspace nào thì dữ liệu chỉ vào workspace đó, không tự ghi đè lưới còn lại.</p>
 
       <h3>Lịch sử và yêu thích</h3>
       <p>Mỗi công thức tạo ra được lưu vào Lịch sử ngay trên máy này. Bấm vào một mục để nạp lại <em>toàn bộ cấu hình</em>, không chỉ sao chép chữ. Bấm <strong>★ Lưu yêu thích</strong> để đặt tên riêng và ghim lên đầu trang.</p>

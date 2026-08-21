@@ -1061,6 +1061,51 @@ dialog.script-review::backdrop { background: var(--review-backdrop); backdrop-fi
 }
 .fh-bar-actions { margin-left: auto; display: flex; gap: 8px; }
 
+.fh-data-grid-panel {
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--line);
+  background: var(--ink);
+}
+.fh-data-grid-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+}
+.fh-data-grid-title h3 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 14px;
+}
+.fh-data-grid-title p {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.fh-data-grid-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 16px;
+  color: var(--muted);
+  font-size: 12px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.fh-data-grid-meta strong { color: var(--text); }
+.fh-data-grid-empty {
+  padding: 12px 16px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.fh-data-grid-host {
+  height: min(38vh, 360px);
+  min-height: 230px;
+  border-top: 0;
+}
+
 .fh-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
 .fh-field > label {
   font-size: 11.5px;

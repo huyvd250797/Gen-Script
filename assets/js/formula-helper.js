@@ -13,6 +13,7 @@
   var host = {
     toast: function () {},
     onImport: function () {},
+    onWorkbookEdit: function () {},
     getSelectedColumn: function () { return null; },
     setActiveSheet: function () {}
   };
@@ -23,6 +24,7 @@
     config: {},
     settings: null,
     showAdvanced: false,
+    gridOpen: false,
     query: '',
     lastResult: null,
     previewTimer: null
@@ -30,6 +32,9 @@
 
   var root = null;
   var nodes = {};
+  var dataGrid = null;
+  var dataGridSheetIndex = -1;
+  var dataGridSyncing = false;
 
   /* ============================================================
    * Tiện ích DOM
@@ -94,6 +99,14 @@
     return ref;
   }
 
+  function selectedFormulaGridColumn() {
+    if (dataGrid && state.gridOpen && dataGridSheetIndex >= 0) {
+      var sel = dataGrid.getSelection();
+      if (sel) return { sheetIndex: dataGridSheetIndex, colIndex: sel.column };
+    }
+    return host.getSelectedColumn();
+  }
+
   function tool() { return state.toolId ? PRESETS.getTool(state.toolId) : null; }
 
   function buildConfig() {
@@ -154,6 +167,11 @@
     bar.appendChild(nodes.dataRow);
 
     var barActions = h('div', 'fh-bar-actions');
+    nodes.gridToggle = button('Mở lưới dữ liệu', 'btn btn-tiny', function () {
+      state.gridOpen = !state.gridOpen;
+      renderDataGridPanel();
+    });
+    barActions.appendChild(nodes.gridToggle);
     barActions.appendChild(button('Thư viện hàm', 'btn btn-tiny', function () {
       state.view = state.view === 'library' ? 'home' : 'library';
       renderPanel();
@@ -165,6 +183,9 @@
     bar.appendChild(barActions);
     root.appendChild(bar);
 
+    nodes.dataGridPanel = h('section', 'fh-data-grid-panel');
+    root.appendChild(nodes.dataGridPanel);
+
     var body = h('div', 'fh-body');
     nodes.panel = h('div', 'fh-panel');
     nodes.side = h('aside', 'fh-side');
@@ -173,6 +194,7 @@
     root.appendChild(body);
 
     renderPanel();
+    renderDataGridPanel();
     renderSide();
   }
 
@@ -209,6 +231,77 @@
     wrap.appendChild(lab);
     wrap.appendChild(input);
     return wrap;
+  }
+
+  /* ============================================================
+   * Lưới dữ liệu trong Formula Helper
+   * ========================================================= */
+
+  function renderDataGridPanel() {
+    if (!nodes.dataGridPanel) return;
+    clear(nodes.dataGridPanel);
+    nodes.dataGridPanel.hidden = !state.gridOpen;
+    if (nodes.gridToggle) nodes.gridToggle.textContent = state.gridOpen ? 'Đóng lưới dữ liệu' : 'Mở lưới dữ liệu';
+    if (!state.gridOpen) return;
+
+    var head = h('div', 'fh-data-grid-head');
+    var title = h('div', 'fh-data-grid-title');
+    title.appendChild(h('h3', null, 'Lưới dữ liệu Formula Helper'));
+    title.appendChild(h('p', null, 'Sửa, dán, fill, copy và xoá dữ liệu trực tiếp trên workbook riêng của Formula Helper.'));
+    head.appendChild(title);
+    head.appendChild(button('Nhập từ Excel', 'btn btn-tiny', function () { host.onImport(); }));
+    nodes.dataGridPanel.appendChild(head);
+
+    if (!WB.getSheets().length) {
+      var empty = h('div', 'fh-data-grid-empty');
+      empty.appendChild(h('p', null, 'Chưa có Workbook. Nhập file Excel hoặc tạo dữ liệu trên lưới Formula Helper.'));
+      nodes.dataGridPanel.appendChild(empty);
+      return;
+    }
+
+    var meta = h('div', 'fh-data-grid-meta');
+    var active = WB.getActiveIndex();
+    meta.appendChild(h('strong', null, WB.getSheetName(active) || 'Sheet'));
+    meta.appendChild(h('span', null, WB.getHeaders(active).length + ' cột · ' + WB.getDataRowCount(active) + ' dòng dữ liệu'));
+    nodes.dataGridPanel.appendChild(meta);
+
+    nodes.dataGridHost = h('div', 'fh-data-grid-host grid-scroll');
+    nodes.dataGridPanel.appendChild(nodes.dataGridHost);
+    ensureDataGrid();
+    syncDataGridFromWorkbook();
+  }
+
+  function ensureDataGrid() {
+    if (dataGrid || !global.Grid || !nodes.dataGridHost) return;
+    dataGrid = new global.Grid(nodes.dataGridHost, {
+      onChange: commitDataGridToWorkbook,
+      onStatus: host.toast,
+      onHistoryChange: function () {},
+      onColumnTypesChange: commitDataGridToWorkbook,
+      mode: 'insert'
+    });
+  }
+
+  function syncDataGridFromWorkbook() {
+    if (!dataGrid || !state.gridOpen || !WB.getSheets().length) return;
+    var index = WB.getActiveIndex();
+    var sheet = WB.getSheet(index);
+    if (!sheet) return;
+    dataGridSyncing = true;
+    dataGridSheetIndex = index;
+    dataGrid.setColumnTypes(sheet.columnTypes || []);
+    dataGrid.setMode('insert', 0);
+    dataGrid.setData(sheet.data || [[]]);
+    setTimeout(function () { dataGridSyncing = false; }, 0);
+  }
+
+  function commitDataGridToWorkbook() {
+    if (dataGridSyncing || !dataGrid || dataGridSheetIndex < 0) return;
+    var sheet = WB.getSheet(dataGridSheetIndex);
+    if (!sheet) return;
+    sheet.data = dataGrid.getData();
+    sheet.columnTypes = dataGrid.getColumnTypes();
+    host.onWorkbookEdit('data');
   }
 
   /* ============================================================
@@ -400,7 +493,7 @@
 
   /** Dùng cột đang chọn trên Grid làm giá trị mặc định (§28 §150 §151). */
   function applySmartDefaults(t) {
-    var sel = host.getSelectedColumn();
+    var sel = selectedFormulaGridColumn();
     if (!sel) return;
     var ref = makeRef(sel.sheetIndex, sel.colIndex);
     (t.schema || []).forEach(function (field) {
@@ -616,7 +709,7 @@
 
       if (opts.useSelected) {
         var useBtn = button('Dùng cột đang chọn', 'btn btn-tiny fh-use-selected', function () {
-          var s = host.getSelectedColumn();
+          var s = selectedFormulaGridColumn();
           if (!s) { host.toast('Chưa chọn cột nào trên lưới dữ liệu.'); return; }
           onChange(makeRef(s.sheetIndex, s.colIndex));
           renderPanel();
@@ -1306,6 +1399,7 @@
     options = options || {};
     if (options.toast) host.toast = options.toast;
     if (options.onImport) host.onImport = options.onImport;
+    if (options.onWorkbookEdit) host.onWorkbookEdit = options.onWorkbookEdit;
     if (options.getSelectedColumn) host.getSelectedColumn = options.getSelectedColumn;
     if (options.setActiveSheet) host.setActiveSheet = options.setActiveSheet;
 
@@ -1323,6 +1417,7 @@
         if (issues.length) host.toast(issues[0]);
       }
       renderSide();
+      if (structural) renderDataGridPanel();
       if (structural) renderPanel();
       else if (state.view === 'tool') updateOutput();
     });
