@@ -1441,7 +1441,6 @@
           item.appendChild(h('p', null, f.use));
           var code = h('code', null, f.example);
           item.appendChild(code);
-          item.appendChild(h('span', 'fh-lib-open-hint', 'Bấm để xem mô phỏng'));
           item.addEventListener('click', function () { openLibraryDemo(f); });
           item.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' || e.key === ' ') {
@@ -1463,22 +1462,19 @@
     nodes.libraryDemoTitle.appendChild(h('h3', null, f.name + ' - mô phỏng hàm'));
     nodes.libraryDemoTitle.appendChild(h('p', null, f.use));
 
+    var demo = f.demoSheet || null;
     var formulaBar = h('div', 'fh-demo-formula-bar');
     formulaBar.appendChild(h('span', null, 'fx'));
-    formulaBar.appendChild(h('code', null, f.example));
+    formulaBar.appendChild(h('code', null, demo && demo.formula ? demo.formula : f.example));
     nodes.libraryDemoBody.appendChild(formulaBar);
 
     var guide = h('p', 'fh-demo-guide',
-      'Nhìn giống một sheet Excel nhỏ: cột A là dữ liệu mẫu, cột B là công thức, cột C là kết quả dự kiến.');
+      demo && demo.guide ? demo.guide : 'Nhìn giống một sheet Excel nhỏ: cột A là dữ liệu mẫu, cột B là công thức, cột C là kết quả dự kiến.');
     nodes.libraryDemoBody.appendChild(guide);
 
-    nodes.libraryDemoBody.appendChild(renderLibraryDemoGrid(f.examples || []));
+    nodes.libraryDemoBody.appendChild(renderLibraryDemoGrid(f));
 
-    var note = h('div', 'fh-demo-note');
-    note.appendChild(h('strong', null, 'Cách hiểu nhanh'));
-    note.appendChild(h('p', null,
-      'Nếu dữ liệu ở cột A giống tình huống của bạn, dùng công thức ở cột B và đối chiếu kết quả ở cột C để biết hàm đang xử lý gì.'));
-    nodes.libraryDemoBody.appendChild(note);
+    nodes.libraryDemoBody.appendChild(renderLibraryExplanation(f));
 
     nodes.libraryDemoOverlay.hidden = false;
   }
@@ -1487,7 +1483,40 @@
     if (nodes.libraryDemoOverlay) nodes.libraryDemoOverlay.hidden = true;
   }
 
-  function renderLibraryDemoGrid(examples) {
+  function renderLibraryDemoGrid(f) {
+    if (f.demoSheet && f.demoSheet.rows && f.demoSheet.rows.length) {
+      return renderSpreadsheetGrid(f.demoSheet);
+    }
+    return renderExamplesGrid(f.examples || []);
+  }
+
+  function renderSpreadsheetGrid(sheet) {
+    var table = h('table', 'fh-demo-grid');
+    var thead = document.createElement('thead');
+    var head = document.createElement('tr');
+    [''].concat(sheet.letters || ['A', 'B', 'C']).forEach(function (label) {
+      head.appendChild(h('th', null, label));
+    });
+    thead.appendChild(head);
+    table.appendChild(thead);
+
+    var body = document.createElement('tbody');
+    sheet.rows.forEach(function (row, i) {
+      var tr = document.createElement('tr');
+      tr.appendChild(h('th', null, String(i + 1)));
+      row.forEach(function (cell, colIndex) {
+        var cls = i === 0 ? 'fh-demo-cell-head' : '';
+        if (i > 0 && String(cell || '').charAt(0) === '=') cls = 'fh-demo-formula-cell';
+        if (i > 0 && colIndex === 2 && String(cell || '') !== '') cls = 'fh-demo-result-cell';
+        tr.appendChild(h('td', cls, cell));
+      });
+      body.appendChild(tr);
+    });
+    table.appendChild(body);
+    return table;
+  }
+
+  function renderExamplesGrid(examples) {
     var table = h('table', 'fh-demo-grid');
     var thead = document.createElement('thead');
     var head = document.createElement('tr');
@@ -1513,6 +1542,21 @@
     });
     table.appendChild(body);
     return table;
+  }
+
+  function renderLibraryExplanation(f) {
+    var note = h('div', 'fh-demo-note');
+    note.appendChild(h('strong', null, 'Giải thích công thức'));
+    var steps = f.demoSheet && f.demoSheet.explanation ? f.demoSheet.explanation : null;
+    if (steps && steps.length) {
+      var list = document.createElement('ol');
+      steps.forEach(function (step) { list.appendChild(h('li', null, step)); });
+      note.appendChild(list);
+    } else {
+      note.appendChild(h('p', null,
+        'Nếu dữ liệu ở cột A giống tình huống của bạn, dùng công thức ở cột B và đối chiếu kết quả ở cột C để biết hàm đang xử lý gì.'));
+    }
+    return note;
   }
 
   /* ============================================================

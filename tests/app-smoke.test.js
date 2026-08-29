@@ -92,7 +92,7 @@ is('sinh INSERT vẫn chạy',
   win.SqlGen.build('insert', 'DM_Test', [['Ma', 'Ten'], ['1', 'A']], { dialect: 'mssql', identityInsert: false })
     .sql.indexOf('INSERT INTO [DM_Test]') === 0, true);
 ok('tab bảng render', doc.querySelectorAll('.sheet-tabs .tab').length >= 1);
-ok('phiên bản hiển thị V2.6.0', doc.querySelector('.app-version').textContent === 'V2.6.0');
+ok('phiên bản hiển thị V2.7.0', doc.querySelector('.app-version').textContent === 'V2.7.0');
 var wrappedIn = win.SqlGen.build('select', 'DM_Test', [
   ['ID'], ['1'], ['2'], ['3'], ['4'], ['5'], ['6']
 ], {
@@ -174,6 +174,9 @@ Array.prototype.filter.call(doc.querySelectorAll('.fh-bar-actions button'), func
 })[0].dispatchEvent(new win.Event('click', { bubbles: true }));
 ok('mở được thư viện hàm', !!doc.querySelector('.fh-library'));
 ok('card thư viện không render ví dụ trực tiếp', doc.querySelectorAll('.fh-demo-grid').length === 0);
+ok('card thư viện không còn chữ bấm mô phỏng', Array.prototype.every.call(doc.querySelectorAll('.fh-lib-item'), function (n) {
+  return n.textContent.indexOf('Bấm để xem mô phỏng') === -1;
+}));
 var libSearch = doc.querySelector('.fh-search input');
 libSearch.value = 'Không có';
 libSearch.dispatchEvent(new win.Event('input', { bubbles: true }));
@@ -188,6 +191,13 @@ ok('modal có kết quả mô phỏng', Array.prototype.some.call(doc.querySelec
 }));
 doc.querySelector('.fh-library-demo-overlay .fh-review-close').dispatchEvent(new win.Event('click', { bubbles: true }));
 ok('đóng được modal mô phỏng', doc.querySelector('.fh-library-demo-overlay').hidden);
+libSearch.value = 'countif';
+libSearch.dispatchEvent(new win.Event('input', { bubbles: true }));
+doc.querySelector('.fh-lib-item').dispatchEvent(new win.Event('click', { bubbles: true }));
+ok('COUNTIF demo có vùng quét $B$2:$B$11', doc.querySelector('.fh-demo-grid').textContent.indexOf('$B$2:$B$11') !== -1);
+ok('COUNTIF demo có kết quả số 1 xuất hiện 2 lần', doc.querySelector('.fh-demo-grid').textContent.indexOf('=COUNTIF($B$2:$B$11,C2)') !== -1);
+ok('COUNTIF demo có giải thích công thức', doc.querySelector('.fh-demo-note').textContent.indexOf('$B$2:$B$11 là vùng dữ liệu ban đầu') !== -1);
+doc.querySelector('.fh-library-demo-overlay .fh-review-close').dispatchEvent(new win.Event('click', { bubbles: true }));
 doc.querySelector('.fh-back').dispatchEvent(new win.Event('click', { bubbles: true }));
 
 console.log('\n— Đổi Sheet ngay trong Formula Helper (§111)');

@@ -461,7 +461,30 @@
       demo('A2 = SV003, trong A:A đứng ở dòng thứ 4 của vùng tìm', '=MATCH(A2,A:A,0)', '4'),
       demo('Tìm chữ CNTT trong C2:C20, khớp ở dòng thứ 2 của vùng', '=MATCH("CNTT",C2:C20,0)', '2')
     ] },
-    { name: 'COUNTIF', use: 'Đếm số ô thoả một điều kiện.', example: '=COUNTIF($A:$A,A2)', platforms: BOTH, examples: [
+    { name: 'COUNTIF', use: 'Đếm số ô thoả một điều kiện.', example: '=COUNTIF($A:$A,A2)', platforms: BOTH, demoSheet: {
+      formula: '=COUNTIF($B$2:$B$11,C2)',
+      guide: 'COUNTIF sẽ quét vùng dữ liệu ban đầu rồi đếm xem giá trị cần đếm xuất hiện bao nhiêu lần.',
+      letters: ['B', 'C', 'D', 'E'],
+      rows: [
+        ['Dữ liệu ban đầu', 'Dữ liệu cần đếm', 'Kết quả đếm', 'Công thức'],
+        ['1', '1', '2', '=COUNTIF($B$2:$B$11,C2)'],
+        ['1', '2', '2', '=COUNTIF($B$2:$B$11,C3)'],
+        ['3', '3', '3', '=COUNTIF($B$2:$B$11,C4)'],
+        ['3', '4', '2', '=COUNTIF($B$2:$B$11,C5)'],
+        ['2', '5', '1', '=COUNTIF($B$2:$B$11,C6)'],
+        ['3', '', '', ''],
+        ['4', '', '', ''],
+        ['2', '', '', ''],
+        ['4', '', '', ''],
+        ['5', '', '', '']
+      ],
+      explanation: [
+        '$B$2:$B$11 là vùng dữ liệu ban đầu cần quét. Dấu $ giúp cố định vùng này khi kéo công thức xuống.',
+        'C2 là giá trị cần đếm ở dòng đầu tiên. Trong ví dụ này C2 = 1.',
+        'D2 trả về 2 vì số 1 xuất hiện 2 lần trong vùng $B$2:$B$11.',
+        'Khi kéo công thức xuống, vùng $B$2:$B$11 giữ nguyên, còn C2 đổi thành C3, C4, C5... để đếm số 2, số 3, số 4, số 5.'
+      ]
+    }, examples: [
       demo('Cột A có SV001 xuất hiện 2 lần, A2 = SV001', '=COUNTIF($A:$A,A2)', '2'),
       demo('Cột C có 5 dòng là CNTT', '=COUNTIF(C:C,"CNTT")', '5')
     ] },
