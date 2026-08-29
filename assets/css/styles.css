@@ -1751,7 +1751,7 @@ body.is-resizing-formula .fh-tool-resizer {
 
 /* ------------------------------------------------------ library */
 
-.fh-library { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.fh-library { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; }
 .fh-lib-item {
   border: 1px solid var(--line);
   border-radius: 9px;
@@ -1774,6 +1774,41 @@ body.is-resizing-formula .fh-tool-resizer {
   padding: 6px 8px;
   border-radius: 6px;
   word-break: break-all;
+}
+.fh-lib-examples {
+  margin-top: 10px;
+  display: grid;
+  gap: 7px;
+}
+.fh-lib-examples > strong {
+  font-size: 11px;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.fh-lib-demo {
+  display: grid;
+  gap: 5px;
+  padding: 8px;
+  border: 1px solid rgba(126, 165, 207, .18);
+  border-radius: 7px;
+  background: rgba(21, 34, 48, .45);
+}
+.fh-lib-demo-label {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.fh-lib-demo code {
+  margin: 0;
+  padding: 5px 7px;
+  font-size: 11px;
+}
+.fh-lib-demo em {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--teal);
+  line-height: 1.4;
 }
 
 /* ------------------------------------------------------ help modal Formula Helper */

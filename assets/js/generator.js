@@ -267,6 +267,29 @@
       .join('\n');
   }
 
+  function getInWrapEvery(o) {
+    var n = parseInt(o && o.inWrapEvery, 10) || 0;
+    if (n < 1) return 0;
+    return Math.min(n, 1000);
+  }
+
+  function formatInList(values, o) {
+    var every = getInWrapEvery(o);
+    if (!every || values.length <= every) return '(' + values.join(', ') + ')';
+    var lines = [];
+    for (var i = 0; i < values.length; i += every) {
+      var line = values.slice(i, i + every).join(', ');
+      if (i + every < values.length) line += ',';
+      lines.push(INDENT + line);
+    }
+    return '(\n' + lines.join('\n') + '\n)';
+  }
+
+  function formatInCondition(col, values, hasNull, o) {
+    var condition = col + ' IN ' + formatInList(values, o);
+    return hasNull ? '(' + condition + ' OR ' + col + ' IS NULL)' : condition;
+  }
+
   function formatSelectSql(qualified, predicate, o) {
     if (!isPrettyFormat(o)) {
       return 'SELECT * FROM ' + qualified + (predicate ? ' WHERE ' + predicate : '') + term(o);
@@ -493,8 +516,7 @@
     }
 
     if (!values.length) return hasNull ? col + ' IS NULL' : '';
-    if (!hasNull) return col + ' IN (' + values.join(', ') + ')';
-    return '(' + col + ' IN (' + values.join(', ') + ') OR ' + col + ' IS NULL)';
+    return formatInCondition(col, values, hasNull, o);
   }
 
   function buildColumnInSelectWhere(prep, d, o, keyCount, joiner, warnings) {
@@ -524,8 +546,7 @@
     }
 
     if (!values.length) return hasNull ? col + ' IS NULL' : '';
-    if (!hasNull) return col + ' IN (' + values.join(', ') + ')';
-    return '(' + col + ' IN (' + values.join(', ') + ') OR ' + col + ' IS NULL)';
+    return formatInCondition(col, values, hasNull, o);
   }
 
   function buildMultiColumnSelectWhere(prep, d, o, keyCount, warnings) {

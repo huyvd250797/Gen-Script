@@ -92,7 +92,17 @@ is('sinh INSERT vẫn chạy',
   win.SqlGen.build('insert', 'DM_Test', [['Ma', 'Ten'], ['1', 'A']], { dialect: 'mssql', identityInsert: false })
     .sql.indexOf('INSERT INTO [DM_Test]') === 0, true);
 ok('tab bảng render', doc.querySelectorAll('.sheet-tabs .tab').length >= 1);
-ok('phiên bản hiển thị V2.4.0', doc.querySelector('.app-version').textContent === 'V2.4.0');
+ok('phiên bản hiển thị V2.5.0', doc.querySelector('.app-version').textContent === 'V2.5.0');
+var wrappedIn = win.SqlGen.build('select', 'DM_Test', [
+  ['ID'], ['1'], ['2'], ['3'], ['4'], ['5'], ['6']
+], {
+  dialect: 'mssql',
+  whereColumns: 1,
+  selectWhereMode: 'inAnd',
+  inWrapEvery: 5
+}).sql;
+ok('SELECT IN xuống dòng theo số lượng cấu hình', wrappedIn.indexOf('[ID] IN (') !== -1 && wrappedIn.indexOf('1, 2, 3, 4, 5,\n') !== -1);
+ok('SELECT IN không có dấu phẩy dư trước dấu đóng ngoặc', wrappedIn.indexOf('6,\n    )') === -1);
 
 console.log('\n— Workspace switch (§7 §200)');
 var wsButtons = doc.querySelectorAll('.ws-btn');
@@ -157,6 +167,23 @@ ok('Home chưa hiện nút sidebar công cụ', Array.prototype.every.call(doc.q
 }));
 ok('panel Workbook hiện tên file', doc.querySelector('.fh-wb-file strong').textContent === 'SinhVien.xlsx');
 is('liệt kê đủ sheet', doc.querySelectorAll('.fh-wb-sheet').length, 3);
+
+console.log('\n— Thư viện hàm có ví dụ mô phỏng');
+Array.prototype.filter.call(doc.querySelectorAll('.fh-bar-actions button'), function (b) {
+  return b.textContent === 'Thư viện hàm';
+})[0].dispatchEvent(new win.Event('click', { bubbles: true }));
+ok('mở được thư viện hàm', !!doc.querySelector('.fh-library'));
+ok('thư viện có ví dụ dễ hiểu', doc.querySelectorAll('.fh-lib-demo').length >= 20);
+ok('ví dụ có kết quả mô phỏng', Array.prototype.some.call(doc.querySelectorAll('.fh-lib-demo em'), function (n) {
+  return n.textContent.indexOf('Kết quả:') === 0;
+}));
+var libSearch = doc.querySelector('.fh-search input');
+libSearch.value = 'Không có';
+libSearch.dispatchEvent(new win.Event('input', { bubbles: true }));
+ok('tìm được theo nội dung mô phỏng', Array.prototype.some.call(doc.querySelectorAll('.fh-lib-item h4'), function (n) {
+  return n.textContent === 'XLOOKUP';
+}));
+doc.querySelector('.fh-back').dispatchEvent(new win.Event('click', { bubbles: true }));
 
 console.log('\n— Đổi Sheet ngay trong Formula Helper (§111)');
 Array.prototype.filter.call(doc.querySelectorAll('.fh-bar-actions button'), function (b) {
