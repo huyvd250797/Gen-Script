@@ -92,7 +92,7 @@ is('sinh INSERT vẫn chạy',
   win.SqlGen.build('insert', 'DM_Test', [['Ma', 'Ten'], ['1', 'A']], { dialect: 'mssql', identityInsert: false })
     .sql.indexOf('INSERT INTO [DM_Test]') === 0, true);
 ok('tab bảng render', doc.querySelectorAll('.sheet-tabs .tab').length >= 1);
-ok('phiên bản hiển thị V2.7.0', doc.querySelector('.app-version').textContent === 'V2.7.0');
+ok('phiên bản hiển thị V2.8.0', doc.querySelector('.app-version').textContent === 'V2.8.0');
 var wrappedIn = win.SqlGen.build('select', 'DM_Test', [
   ['ID'], ['1'], ['2'], ['3'], ['4'], ['5'], ['6']
 ], {
@@ -169,6 +169,9 @@ ok('panel Workbook hiện tên file', doc.querySelector('.fh-wb-file strong').te
 is('liệt kê đủ sheet', doc.querySelectorAll('.fh-wb-sheet').length, 3);
 
 console.log('\n— Thư viện hàm có ví dụ mô phỏng');
+ok('toàn bộ hàm thư viện có demoSheet riêng', win.FormulaPresets.LIBRARY.every(function (f) {
+  return !!(f.demoSheet && f.demoSheet.rows && f.demoSheet.rows.length && f.demoSheet.explanation && f.demoSheet.explanation.length);
+}));
 Array.prototype.filter.call(doc.querySelectorAll('.fh-bar-actions button'), function (b) {
   return b.textContent === 'Thư viện hàm';
 })[0].dispatchEvent(new win.Event('click', { bubbles: true }));

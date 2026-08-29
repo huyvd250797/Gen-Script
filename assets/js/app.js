@@ -1,7 +1,7 @@
 /*!
  * app.js — App shell: ghép lưới nhập liệu, bộ sinh SQL và Formula Helper.
  *
- * V2.7.0: Modal mô phỏng hàm dùng sheet mẫu và giải thích vùng dữ liệu cụ thể.
+ * V2.8.0: Toàn bộ Thư viện hàm có sheet mô phỏng riêng và giải thích công thức.
  */
 (function () {
   'use strict';

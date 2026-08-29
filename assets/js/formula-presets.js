@@ -606,6 +606,402 @@
     ] }
   ];
 
+  function sheet(formula, guide, letters, rows, explanation) {
+    return {
+      formula: formula,
+      guide: guide,
+      letters: letters || ['A', 'B', 'C', 'D'],
+      rows: rows,
+      explanation: explanation
+    };
+  }
+
+  var DEMO_SHEETS = {
+    XLOOKUP: sheet('=XLOOKUP(B2,$F$2:$F$5,$G$2:$G$5,"Không tìm thấy")',
+      'XLOOKUP tìm mã sinh viên ở cột F và trả về ID tương ứng ở cột G.',
+      ['B', 'C', 'D', 'F', 'G'],
+      [
+        ['Mã cần tìm', 'Kết quả ID', 'Công thức', 'Mã SV gốc', 'ID'],
+        ['SV001', '125', '=XLOOKUP(B2,$F$2:$F$5,$G$2:$G$5,"Không tìm thấy")', 'SV001', '125'],
+        ['SV002', '128', '=XLOOKUP(B3,$F$2:$F$5,$G$2:$G$5,"Không tìm thấy")', 'SV002', '128'],
+        ['SV999', 'Không tìm thấy', '=XLOOKUP(B4,$F$2:$F$5,$G$2:$G$5,"Không tìm thấy")', 'SV003', '130'],
+        ['', '', '', 'SV004', '145']
+      ],
+      ['$F$2:$F$5 là vùng chứa mã sinh viên để tìm.', '$G$2:$G$5 là vùng trả về ID tương ứng cùng dòng.', 'B2 là mã cần tìm; nếu không có, công thức trả về "Không tìm thấy".']),
+    VLOOKUP: sheet('=VLOOKUP(B2,$F$2:$H$5,3,FALSE)',
+      'VLOOKUP tìm giá trị ở cột đầu tiên của bảng và trả về cột thứ N bên phải.',
+      ['B', 'C', 'D', 'F', 'G', 'H'],
+      [
+        ['Mã cần tìm', 'Trạng thái', 'Công thức', 'Mã SV', 'Họ tên', 'Trạng thái'],
+        ['SV001', 'Đang học', '=VLOOKUP(B2,$F$2:$H$5,3,FALSE)', 'SV001', 'An', 'Đang học'],
+        ['SV002', 'Bảo lưu', '=VLOOKUP(B3,$F$2:$H$5,3,FALSE)', 'SV002', 'Bình', 'Bảo lưu'],
+        ['SV004', 'Tốt nghiệp', '=VLOOKUP(B4,$F$2:$H$5,3,FALSE)', 'SV003', 'Chi', 'Đang học'],
+        ['', '', '', 'SV004', 'Dũng', 'Tốt nghiệp']
+      ],
+      ['$F$2:$H$5 là bảng tra cứu, cột F bắt buộc là cột chứa mã cần tìm.', 'Số 3 nghĩa là trả về cột thứ 3 trong bảng F:H, tức cột H.', 'FALSE yêu cầu khớp chính xác mã sinh viên.']),
+    INDEX: sheet('=INDEX($G$2:$G$5,MATCH(B2,$F$2:$F$5,0))',
+      'INDEX lấy giá trị ở một vị trí; MATCH tìm vị trí đó.',
+      ['B', 'C', 'D', 'F', 'G'],
+      [
+        ['Mã cần tìm', 'Tên trả về', 'Công thức', 'Mã SV', 'Họ tên'],
+        ['SV001', 'An', '=INDEX($G$2:$G$5,MATCH(B2,$F$2:$F$5,0))', 'SV001', 'An'],
+        ['SV003', 'Chi', '=INDEX($G$2:$G$5,MATCH(B3,$F$2:$F$5,0))', 'SV002', 'Bình'],
+        ['SV004', 'Dũng', '=INDEX($G$2:$G$5,MATCH(B4,$F$2:$F$5,0))', 'SV003', 'Chi'],
+        ['', '', '', 'SV004', 'Dũng']
+      ],
+      ['MATCH(B2,$F$2:$F$5,0) tìm vị trí của mã SV001 trong danh sách mã.', 'INDEX($G$2:$G$5, vị trí) lấy họ tên ở đúng vị trí vừa tìm.', 'Cặp INDEX+MATCH dùng tốt khi cột trả về nằm bên trái hoặc muốn tra cứu linh hoạt.']),
+    MATCH: sheet('=MATCH(B2,$F$2:$F$6,0)',
+      'MATCH trả về vị trí tương đối của giá trị trong một vùng.',
+      ['B', 'C', 'D', 'F'],
+      [
+        ['Mã cần tìm', 'Vị trí', 'Công thức', 'Danh sách mã'],
+        ['SV003', '3', '=MATCH(B2,$F$2:$F$6,0)', 'SV001'],
+        ['SV005', '5', '=MATCH(B3,$F$2:$F$6,0)', 'SV002'],
+        ['SV001', '1', '=MATCH(B4,$F$2:$F$6,0)', 'SV003'],
+        ['', '', '', 'SV004'],
+        ['', '', '', 'SV005']
+      ],
+      ['$F$2:$F$6 là danh sách cần dò.', 'B2 là mã cần tìm; SV003 nằm ở vị trí thứ 3 trong vùng F2:F6.', 'Số 0 nghĩa là tìm khớp chính xác.']),
+    COUNTIF: sheet('=COUNTIF($B$2:$B$11,C2)',
+      'COUNTIF quét vùng dữ liệu ban đầu rồi đếm xem giá trị cần đếm xuất hiện bao nhiêu lần.',
+      ['B', 'C', 'D', 'E'],
+      [
+        ['Dữ liệu ban đầu', 'Dữ liệu cần đếm', 'Kết quả đếm', 'Công thức'],
+        ['1', '1', '2', '=COUNTIF($B$2:$B$11,C2)'],
+        ['1', '2', '2', '=COUNTIF($B$2:$B$11,C3)'],
+        ['3', '3', '3', '=COUNTIF($B$2:$B$11,C4)'],
+        ['3', '4', '2', '=COUNTIF($B$2:$B$11,C5)'],
+        ['2', '5', '1', '=COUNTIF($B$2:$B$11,C6)'],
+        ['3', '', '', ''],
+        ['4', '', '', ''],
+        ['2', '', '', ''],
+        ['4', '', '', ''],
+        ['5', '', '', '']
+      ],
+      ['$B$2:$B$11 là vùng dữ liệu ban đầu cần quét. Dấu $ giúp cố định vùng này khi kéo công thức xuống.', 'C2 là giá trị cần đếm ở dòng đầu tiên. Trong ví dụ này C2 = 1.', 'D2 trả về 2 vì số 1 xuất hiện 2 lần trong vùng $B$2:$B$11.', 'Khi kéo công thức xuống, vùng $B$2:$B$11 giữ nguyên, còn C2 đổi thành C3, C4, C5... để đếm số 2, số 3, số 4, số 5.']),
+    COUNTIFS: sheet('=COUNTIFS($B$2:$B$8,F2,$C$2:$C$8,G2)',
+      'COUNTIFS đếm số dòng thoả nhiều điều kiện cùng lúc.',
+      ['B', 'C', 'F', 'G', 'H', 'I'],
+      [
+        ['Lớp', 'Trạng thái', 'Lớp cần đếm', 'Trạng thái cần đếm', 'Kết quả', 'Công thức'],
+        ['CNTT', 'Đang học', 'CNTT', 'Đang học', '3', '=COUNTIFS($B$2:$B$8,F2,$C$2:$C$8,G2)'],
+        ['CNTT', 'Đang học', 'KTPM', 'Đang học', '1', '=COUNTIFS($B$2:$B$8,F3,$C$2:$C$8,G3)'],
+        ['KTPM', 'Đang học', 'CNTT', 'Bảo lưu', '1', '=COUNTIFS($B$2:$B$8,F4,$C$2:$C$8,G4)'],
+        ['CNTT', 'Bảo lưu', '', '', '', ''],
+        ['QTKD', 'Đang học', '', '', '', ''],
+        ['CNTT', 'Đang học', '', '', '', ''],
+        ['KTPM', 'Nghỉ học', '', '', '', '']
+      ],
+      ['$B$2:$B$8 là vùng lớp, F2 là lớp cần đếm.', '$C$2:$C$8 là vùng trạng thái, G2 là trạng thái cần đếm.', 'H2 trả về 3 vì có 3 dòng vừa là CNTT vừa là Đang học.']),
+    SUMIF: sheet('=SUMIF($B$2:$B$7,E2,$C$2:$C$7)',
+      'SUMIF cộng các số ở vùng tính tổng khi vùng điều kiện khớp một giá trị.',
+      ['B', 'C', 'E', 'F', 'G'],
+      [
+        ['Lớp', 'Học phí', 'Lớp cần cộng', 'Tổng học phí', 'Công thức'],
+        ['CNTT', '100', 'CNTT', '420', '=SUMIF($B$2:$B$7,E2,$C$2:$C$7)'],
+        ['KTPM', '150', 'KTPM', '350', '=SUMIF($B$2:$B$7,E3,$C$2:$C$7)'],
+        ['CNTT', '120', 'QTKD', '80', '=SUMIF($B$2:$B$7,E4,$C$2:$C$7)'],
+        ['QTKD', '80', '', '', ''],
+        ['KTPM', '200', '', '', ''],
+        ['CNTT', '200', '', '', '']
+      ],
+      ['$B$2:$B$7 là vùng điều kiện lớp.', 'E2 là lớp cần cộng, ví dụ CNTT.', '$C$2:$C$7 là vùng số tiền được cộng; CNTT có 100 + 120 + 200 = 420.']),
+    SUMIFS: sheet('=SUMIFS($D$2:$D$8,$B$2:$B$8,F2,$C$2:$C$8,G2)',
+      'SUMIFS cộng số tiền khi nhiều điều kiện cùng đúng.',
+      ['B', 'C', 'D', 'F', 'G', 'H', 'I'],
+      [
+        ['Lớp', 'Học kỳ', 'Số tiền', 'Lớp cần cộng', 'HK cần cộng', 'Kết quả', 'Công thức'],
+        ['CNTT', 'HK1', '100', 'CNTT', 'HK1', '300', '=SUMIFS($D$2:$D$8,$B$2:$B$8,F2,$C$2:$C$8,G2)'],
+        ['CNTT', 'HK2', '120', 'CNTT', 'HK2', '120', '=SUMIFS($D$2:$D$8,$B$2:$B$8,F3,$C$2:$C$8,G3)'],
+        ['KTPM', 'HK1', '150', 'KTPM', 'HK1', '350', '=SUMIFS($D$2:$D$8,$B$2:$B$8,F4,$C$2:$C$8,G4)'],
+        ['CNTT', 'HK1', '200', '', '', '', ''],
+        ['QTKD', 'HK1', '80', '', '', '', ''],
+        ['KTPM', 'HK1', '200', '', '', '', ''],
+        ['CNTT', 'HK3', '90', '', '', '', '']
+      ],
+      ['$D$2:$D$8 là vùng số tiền cần cộng.', '$B$2:$B$8/F2 là điều kiện lớp.', '$C$2:$C$8/G2 là điều kiện học kỳ; chỉ dòng thoả cả hai điều kiện mới được cộng.']),
+    IF: sheet('=IF(B2>=5,"Đạt","Không đạt")',
+      'IF kiểm tra điều kiện; đúng thì trả kết quả thứ nhất, sai thì trả kết quả thứ hai.',
+      ['B', 'C', 'D'],
+      [
+        ['Điểm', 'Kết quả', 'Công thức'],
+        ['7', 'Đạt', '=IF(B2>=5,"Đạt","Không đạt")'],
+        ['4', 'Không đạt', '=IF(B3>=5,"Đạt","Không đạt")'],
+        ['5', 'Đạt', '=IF(B4>=5,"Đạt","Không đạt")']
+      ],
+      ['B2>=5 là điều kiện cần kiểm tra.', 'Nếu điều kiện đúng, C2 trả về "Đạt".', 'Nếu điều kiện sai, C2 trả về "Không đạt".']),
+    IFS: sheet('=IFS(B2>=8.5,"Giỏi",B2>=7,"Khá",TRUE,"Đạt")',
+      'IFS xét nhiều điều kiện theo thứ tự từ trên xuống.',
+      ['B', 'C', 'D'],
+      [
+        ['Điểm', 'Xếp loại', 'Công thức'],
+        ['9', 'Giỏi', '=IFS(B2>=8.5,"Giỏi",B2>=7,"Khá",TRUE,"Đạt")'],
+        ['7.5', 'Khá', '=IFS(B3>=8.5,"Giỏi",B3>=7,"Khá",TRUE,"Đạt")'],
+        ['6', 'Đạt', '=IFS(B4>=8.5,"Giỏi",B4>=7,"Khá",TRUE,"Đạt")']
+      ],
+      ['Excel kiểm tra điều kiện đầu tiên trước.', 'Nếu điểm >= 8.5 thì trả về Giỏi và dừng.', 'TRUE ở cuối là nhánh còn lại khi các điều kiện trên không đúng.']),
+    AND: sheet('=AND(B2<>"",C2="Đang học")',
+      'AND chỉ trả TRUE khi tất cả điều kiện đều đúng.',
+      ['B', 'C', 'D', 'E'],
+      [
+        ['Mã SV', 'Trạng thái', 'Kết quả', 'Công thức'],
+        ['SV001', 'Đang học', 'TRUE', '=AND(B2<>"",C2="Đang học")'],
+        ['', 'Đang học', 'FALSE', '=AND(B3<>"",C3="Đang học")'],
+        ['SV003', 'Bảo lưu', 'FALSE', '=AND(B4<>"",C4="Đang học")']
+      ],
+      ['B2<>"" kiểm tra mã sinh viên không trống.', 'C2="Đang học" kiểm tra trạng thái.', 'Cả hai điều kiện cùng đúng thì kết quả mới là TRUE.']),
+    OR: sheet('=OR(B2="CNTT",B2="KTPM")',
+      'OR trả TRUE nếu có ít nhất một điều kiện đúng.',
+      ['B', 'C', 'D'],
+      [
+        ['Ngành', 'Kết quả', 'Công thức'],
+        ['CNTT', 'TRUE', '=OR(B2="CNTT",B2="KTPM")'],
+        ['QTKD', 'FALSE', '=OR(B3="CNTT",B3="KTPM")'],
+        ['KTPM', 'TRUE', '=OR(B4="CNTT",B4="KTPM")']
+      ],
+      ['Công thức kiểm tra B2 có là CNTT hoặc KTPM không.', 'Chỉ cần một điều kiện đúng là trả TRUE.', 'Nếu không khớp điều kiện nào, kết quả là FALSE.']),
+    FILTER: sheet('=FILTER(B2:D7,D2:D7=G2,"Không có")',
+      'FILTER trả về các dòng thoả điều kiện.',
+      ['B', 'C', 'D', 'G', 'H'],
+      [
+        ['Mã SV', 'Họ tên', 'Ngành', 'Ngành cần lọc', 'Kết quả'],
+        ['SV001', 'An', 'CNTT', 'CNTT', 'SV001 - An - CNTT'],
+        ['SV002', 'Bình', 'KTPM', '', 'SV003 - Chi - CNTT'],
+        ['SV003', 'Chi', 'CNTT', '', 'SV005 - Hạnh - CNTT'],
+        ['SV004', 'Dũng', 'QTKD', '', ''],
+        ['SV005', 'Hạnh', 'CNTT', '', ''],
+        ['SV006', 'Lan', 'KTPM', '', '']
+      ],
+      ['B2:D7 là bảng cần trả về.', 'D2:D7=G2 là điều kiện lọc ngành bằng CNTT.', 'Các dòng không thoả điều kiện sẽ bị bỏ qua.']),
+    UNIQUE: sheet('=UNIQUE(B2:B8)',
+      'UNIQUE lấy danh sách không trùng từ một vùng dữ liệu.',
+      ['B', 'D', 'E'],
+      [
+        ['Ngành ban đầu', 'Kết quả không trùng', 'Công thức'],
+        ['CNTT', 'CNTT', '=UNIQUE(B2:B8)'],
+        ['CNTT', 'KTPM', ''],
+        ['KTPM', 'QTKD', ''],
+        ['QTKD', '', ''],
+        ['CNTT', '', ''],
+        ['KTPM', '', ''],
+        ['CNTT', '', '']
+      ],
+      ['B2:B8 là danh sách có dữ liệu trùng.', 'UNIQUE chỉ giữ lại lần xuất hiện đầu tiên của mỗi giá trị.', 'Kết quả đổ xuống nhiều dòng ở cột D.']),
+    SORT: sheet('=SORT(B2:B8)',
+      'SORT sắp xếp dữ liệu theo thứ tự tăng hoặc giảm.',
+      ['B', 'D', 'E'],
+      [
+        ['Tên ban đầu', 'Tên đã sắp xếp', 'Công thức'],
+        ['Lan', 'An', '=SORT(B2:B8)'],
+        ['An', 'Bình', ''],
+        ['Dũng', 'Chi', ''],
+        ['Bình', 'Dũng', ''],
+        ['Chi', 'Lan', ''],
+        ['Hạnh', 'Hạnh', ''],
+        ['Minh', 'Minh', '']
+      ],
+      ['B2:B8 là vùng dữ liệu cần sắp xếp.', 'SORT mặc định sắp xếp tăng dần.', 'Kết quả đổ xuống cột D theo thứ tự mới.']),
+    TEXTJOIN: sheet('=TEXTJOIN(" ",TRUE,B2:D2)',
+      'TEXTJOIN nối nhiều ô thành một chuỗi, có thể bỏ qua ô trống.',
+      ['B', 'C', 'D', 'E', 'F'],
+      [
+        ['Họ', 'Tên đệm', 'Tên', 'Họ tên', 'Công thức'],
+        ['Nguyễn', 'Văn', 'An', 'Nguyễn Văn An', '=TEXTJOIN(" ",TRUE,B2:D2)'],
+        ['Trần', '', 'Bình', 'Trần Bình', '=TEXTJOIN(" ",TRUE,B3:D3)'],
+        ['Lê', 'Thị', 'Chi', 'Lê Thị Chi', '=TEXTJOIN(" ",TRUE,B4:D4)']
+      ],
+      ['Dấu cách " " là ký tự ngăn giữa các phần.', 'TRUE nghĩa là bỏ qua ô trống.', 'B2:D2 là các ô cần nối thành họ tên.']),
+    TRIM: sheet('=TRIM(B2)',
+      'TRIM xoá khoảng trắng đầu/cuối và gộp nhiều khoảng trắng giữa chữ.',
+      ['B', 'C', 'D'],
+      [
+        ['Dữ liệu gốc', 'Sau TRIM', 'Công thức'],
+        ['  Nguyễn   Văn   An  ', 'Nguyễn Văn An', '=TRIM(B2)'],
+        [' SV001  ', 'SV001', '=TRIM(B3)'],
+        ['CNTT   K49', 'CNTT K49', '=TRIM(B4)']
+      ],
+      ['B2 là chuỗi đang dư khoảng trắng.', 'TRIM bỏ khoảng trắng ở đầu/cuối.', 'Các khoảng trắng lặp ở giữa được gộp còn một.']),
+    CLEAN: sheet('=CLEAN(B2)',
+      'CLEAN xoá ký tự điều khiển không nhìn thấy khi copy từ web/hệ thống khác.',
+      ['B', 'C', 'D'],
+      [
+        ['Dữ liệu gốc', 'Sau CLEAN', 'Công thức'],
+        ['SV001↵', 'SV001', '=CLEAN(B2)'],
+        ['An□', 'An', '=CLEAN(B3)'],
+        ['CNTT', 'CNTT', '=CLEAN(B4)']
+      ],
+      ['B2 có thể chứa ký tự xuống dòng hoặc ký tự ẩn.', 'CLEAN loại bỏ các ký tự không in được.', 'Thường kết hợp CLEAN với TRIM để làm sạch dữ liệu nhập từ nhiều nguồn.']),
+    SUBSTITUTE: sheet('=SUBSTITUTE(B2,"-","/")',
+      'SUBSTITUTE thay một chuỗi con bằng chuỗi khác.',
+      ['B', 'C', 'D'],
+      [
+        ['Dữ liệu gốc', 'Sau thay thế', 'Công thức'],
+        ['01-09-2026', '01/09/2026', '=SUBSTITUTE(B2,"-","/")'],
+        ['SV.001.2026', 'SV0012026', '=SUBSTITUTE(B3,".","")'],
+        ['CNTT K49', 'CNTT-K49', '=SUBSTITUTE(B4," ","-")']
+      ],
+      ['B2 là chuỗi cần xử lý.', 'Tham số thứ hai là phần cần tìm.', 'Tham số thứ ba là phần thay vào.']),
+    LEFT: sheet('=LEFT(B2,4)',
+      'LEFT lấy N ký tự tính từ bên trái.',
+      ['B', 'C', 'D'],
+      [
+        ['Dữ liệu gốc', 'Kết quả', 'Công thức'],
+        ['CNTT-K49', 'CNTT', '=LEFT(B2,4)'],
+        ['SV001', 'SV', '=LEFT(B3,2)'],
+        ['2026-HK1', '2026', '=LEFT(B4,4)']
+      ],
+      ['B2 là chuỗi gốc.', 'Số 4 nghĩa là lấy 4 ký tự đầu tiên.', 'Dùng khi mã có cấu trúc cố định ở đầu chuỗi.']),
+    RIGHT: sheet('=RIGHT(B2,3)',
+      'RIGHT lấy N ký tự tính từ bên phải.',
+      ['B', 'C', 'D'],
+      [
+        ['Dữ liệu gốc', 'Kết quả', 'Công thức'],
+        ['CNTT-K49', 'K49', '=RIGHT(B2,3)'],
+        ['SV000125', '125', '=RIGHT(B3,3)'],
+        ['2026-HK1', 'HK1', '=RIGHT(B4,3)']
+      ],
+      ['B2 là chuỗi gốc.', 'Số 3 nghĩa là lấy 3 ký tự cuối.', 'Dùng để lấy hậu tố như lớp, học kỳ, mã cuối.']),
+    MID: sheet('=MID(B2,4,4)',
+      'MID lấy một đoạn ký tự từ giữa chuỗi.',
+      ['B', 'C', 'D'],
+      [
+        ['Dữ liệu gốc', 'Kết quả', 'Công thức'],
+        ['SV-2026-001', '2026', '=MID(B2,4,4)'],
+        ['ABCDEF', 'BCD', '=MID(B3,2,3)'],
+        ['LOP-CNTT-K49', 'CNTT', '=MID(B4,5,4)']
+      ],
+      ['B2 là chuỗi gốc.', 'Số 4 là vị trí bắt đầu lấy.', 'Số 4 tiếp theo là số ký tự cần lấy.']),
+    LEN: sheet('=LEN(B2)',
+      'LEN đếm tổng số ký tự trong một ô.',
+      ['B', 'C', 'D'],
+      [
+        ['Dữ liệu', 'Số ký tự', 'Công thức'],
+        ['SV001', '5', '=LEN(B2)'],
+        ['001234567890', '12', '=LEN(B3)'],
+        ['CNTT K49', '8', '=LEN(B4)']
+      ],
+      ['B2 là ô cần đếm ký tự.', 'LEN tính cả số, chữ và khoảng trắng.', 'Dùng để kiểm tra mã có đủ độ dài hay không.']),
+    SEARCH: sheet('=SEARCH("CNTT",B2)',
+      'SEARCH tìm vị trí chuỗi con, không phân biệt hoa thường.',
+      ['B', 'C', 'D'],
+      [
+        ['Dữ liệu', 'Vị trí tìm thấy', 'Công thức'],
+        ['Khoa CNTT', '6', '=SEARCH("CNTT",B2)'],
+        ['khoa cntt', '6', '=SEARCH("CNTT",B3)'],
+        ['Phòng QLĐT', '#VALUE!', '=SEARCH("CNTT",B4)']
+      ],
+      ['SEARCH tìm chữ CNTT trong B2.', 'Kết quả 6 nghĩa là CNTT bắt đầu từ ký tự thứ 6.', 'SEARCH không phân biệt hoa thường nên "cntt" vẫn tìm được.']),
+    FIND: sheet('=FIND("CNTT",B2)',
+      'FIND tìm vị trí chuỗi con và có phân biệt hoa thường.',
+      ['B', 'C', 'D'],
+      [
+        ['Dữ liệu', 'Vị trí tìm thấy', 'Công thức'],
+        ['Khoa CNTT', '6', '=FIND("CNTT",B2)'],
+        ['khoa cntt', '#VALUE!', '=FIND("CNTT",B3)'],
+        ['Phòng CNTT', '7', '=FIND("CNTT",B4)']
+      ],
+      ['FIND tìm đúng chữ CNTT trong B2.', 'Nếu dữ liệu là cntt thường, FIND không xem là khớp.', 'Dùng FIND khi cần phân biệt hoa/thường.']),
+    TEXT: sheet('=TEXT(B2,"dd/mm/yyyy")',
+      'TEXT định dạng số hoặc ngày thành chuỗi hiển thị theo mẫu.',
+      ['B', 'C', 'D'],
+      [
+        ['Dữ liệu gốc', 'Sau TEXT', 'Công thức'],
+        ['2026-09-01', '01/09/2026', '=TEXT(B2,"dd/mm/yyyy")'],
+        ['1250000', '1,250,000', '=TEXT(B3,"#,##0")'],
+        ['0.85', '85%', '=TEXT(B4,"0%")']
+      ],
+      ['B2 là ngày/số cần định dạng.', '"dd/mm/yyyy" là mẫu hiển thị ngày.', 'Kết quả của TEXT là chuỗi, phù hợp để làm báo cáo hoặc ghép text.']),
+    DATEDIF: sheet('=DATEDIF(B2,C2,"Y")',
+      'DATEDIF tính chênh lệch giữa hai mốc thời gian.',
+      ['B', 'C', 'D', 'E'],
+      [
+        ['Ngày bắt đầu', 'Ngày kết thúc', 'Kết quả', 'Công thức'],
+        ['01/01/2000', '01/01/2026', '26', '=DATEDIF(B2,C2,"Y")'],
+        ['01/01/2026', '15/03/2026', '2', '=DATEDIF(B3,C3,"M")'],
+        ['01/08/2026', '10/08/2026', '9', '=DATEDIF(B4,C4,"D")']
+      ],
+      ['B2 là ngày bắt đầu, C2 là ngày kết thúc.', '"Y" trả về số năm tròn giữa hai ngày.', 'Có thể đổi "Y" thành "M" để tính tháng hoặc "D" để tính ngày.']),
+    YEAR: sheet('=YEAR(B2)',
+      'YEAR lấy phần năm từ một ngày.',
+      ['B', 'C', 'D'],
+      [
+        ['Ngày', 'Năm', 'Công thức'],
+        ['15/08/2026', '2026', '=YEAR(B2)'],
+        ['20/11/2003', '2003', '=YEAR(B3)'],
+        ['01/01/2025', '2025', '=YEAR(B4)']
+      ],
+      ['B2 là ô chứa ngày.', 'YEAR chỉ lấy phần năm.', 'Dùng để lọc theo năm sinh, năm học, năm chứng từ.']),
+    MONTH: sheet('=MONTH(B2)',
+      'MONTH lấy phần tháng từ một ngày.',
+      ['B', 'C', 'D'],
+      [
+        ['Ngày', 'Tháng', 'Công thức'],
+        ['15/08/2026', '8', '=MONTH(B2)'],
+        ['01/12/2026', '12', '=MONTH(B3)'],
+        ['05/01/2025', '1', '=MONTH(B4)']
+      ],
+      ['B2 là ô chứa ngày.', 'MONTH trả về số tháng từ 1 đến 12.', 'Dùng để nhóm dữ liệu theo tháng.']),
+    DAY: sheet('=DAY(B2)',
+      'DAY lấy phần ngày trong tháng từ một ngày.',
+      ['B', 'C', 'D'],
+      [
+        ['Ngày', 'Ngày trong tháng', 'Công thức'],
+        ['15/08/2026', '15', '=DAY(B2)'],
+        ['01/12/2026', '1', '=DAY(B3)'],
+        ['29/02/2024', '29', '=DAY(B4)']
+      ],
+      ['B2 là ô chứa ngày.', 'DAY chỉ lấy số ngày trong tháng.', 'Dùng khi cần tách ngày/tháng/năm ra các cột riêng.']),
+    QUERY: sheet('=QUERY(B1:D7,"select B,C where D = \'CNTT\'",1)',
+      'QUERY trong Google Sheets lọc/truy vấn dữ liệu bằng cú pháp gần giống SQL.',
+      ['B', 'C', 'D', 'F', 'G'],
+      [
+        ['Mã SV', 'Họ tên', 'Ngành', 'Kết quả mã', 'Kết quả tên'],
+        ['SV001', 'An', 'CNTT', 'SV001', 'An'],
+        ['SV002', 'Bình', 'KTPM', 'SV003', 'Chi'],
+        ['SV003', 'Chi', 'CNTT', 'SV005', 'Hạnh'],
+        ['SV004', 'Dũng', 'QTKD', '', ''],
+        ['SV005', 'Hạnh', 'CNTT', '', ''],
+        ['SV006', 'Lan', 'KTPM', '', '']
+      ],
+      ['B1:D7 là bảng nguồn có dòng tiêu đề.', 'select B,C nghĩa là chỉ lấy cột mã và họ tên.', 'where D = \'CNTT\' chỉ giữ các dòng ngành CNTT.']),
+    ARRAYFORMULA: sheet('=ARRAYFORMULA(TRIM(B2:B6))',
+      'ARRAYFORMULA áp dụng công thức cho cả vùng thay vì nhập từng dòng.',
+      ['B', 'C', 'D'],
+      [
+        ['Tên gốc', 'Tên đã làm sạch', 'Công thức'],
+        ['  An  ', 'An', '=ARRAYFORMULA(TRIM(B2:B6))'],
+        [' Bình', 'Bình', ''],
+        ['Chi  ', 'Chi', ''],
+        ['  Dũng  ', 'Dũng', ''],
+        ['Hạnh', 'Hạnh', '']
+      ],
+      ['B2:B6 là cả vùng cần xử lý.', 'TRIM làm sạch từng ô trong vùng.', 'ARRAYFORMULA giúp công thức đổ kết quả cho nhiều dòng cùng lúc.']),
+    REGEXMATCH: sheet('=REGEXMATCH(B2,"^SV\\d+$")',
+      'REGEXMATCH kiểm tra chuỗi có đúng mẫu biểu thức chính quy hay không.',
+      ['B', 'C', 'D'],
+      [
+        ['Mã', 'Hợp lệ?', 'Công thức'],
+        ['SV001', 'TRUE', '=REGEXMATCH(B2,"^SV\\d+$")'],
+        ['ABC001', 'FALSE', '=REGEXMATCH(B3,"^SV\\d+$")'],
+        ['SVABC', 'FALSE', '=REGEXMATCH(B4,"^SV\\d+$")']
+      ],
+      ['^SV nghĩa là chuỗi phải bắt đầu bằng SV.', '\\d+ nghĩa là phía sau phải có một hoặc nhiều chữ số.', '$ nghĩa là kết thúc chuỗi, không được dư ký tự khác.']),
+    REGEXEXTRACT: sheet('=REGEXEXTRACT(B2,"\\d+")',
+      'REGEXEXTRACT trích phần chuỗi khớp mẫu regex.',
+      ['B', 'C', 'D'],
+      [
+        ['Dữ liệu', 'Phần trích ra', 'Công thức'],
+        ['SV001', '001', '=REGEXEXTRACT(B2,"\\d+")'],
+        ['LOP-CNTT-K49', '49', '=REGEXEXTRACT(B3,"\\d+")'],
+        ['HK1-2026', '1', '=REGEXEXTRACT(B4,"\\d+")']
+      ],
+      ['B2 là chuỗi gốc.', '\\d+ là mẫu tìm một hoặc nhiều chữ số.', 'REGEXEXTRACT trả về phần đầu tiên khớp mẫu.'])
+  };
+
+  LIBRARY.forEach(function (item) {
+    if (DEMO_SHEETS[item.name]) item.demoSheet = DEMO_SHEETS[item.name];
+  });
+
   function getTool(id) {
     for (var i = 0; i < TOOLS.length; i++) if (TOOLS[i].id === id) return TOOLS[i];
     return null;
