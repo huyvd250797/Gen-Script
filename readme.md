@@ -97,7 +97,7 @@ thanh trên cùng để đổi theme; lựa chọn theme cũng được lưu ri�
 đang dùng.
 
 Footer hiển thị bản quyền **© 2026 HuyVo. All rights reserved.** và phiên bản
-hiện tại `V2.5.0` ở góc phải dưới cùng.
+hiện tại `V2.6.0` ở góc phải dưới cùng.
 
 ### INSERT
 
@@ -428,6 +428,20 @@ console.log(out.sql, out.warnings, out.stats);
 
 ## Changelog
 
+### V2.6.0
+
+**Mới**
+
+- Thư viện hàm trở lại dạng danh sách gọn: mỗi card chỉ hiển thị tên hàm, công
+  dụng và công thức mẫu.
+- Bấm vào một hàm sẽ mở modal mô phỏng riêng bằng lưới Excel nhỏ, gồm dữ liệu
+  mẫu, công thức và kết quả dự kiến.
+
+**Cải tiến**
+
+- Phần ví dụ không còn hiển thị trực tiếp trên toàn bộ card, giúp màn hình
+  Thư viện hàm thoáng và dễ lướt hơn.
+
 ### V2.5.0
 
 **Mới**
@@ -440,8 +454,7 @@ console.log(out.sql, out.warnings, out.stats);
 
 **Cải tiến**
 
-- Thẻ thư viện hàm rộng hơn và chia khối ví dụ rõ hơn để người chưa quen Excel
-  dễ hình dung từng hàm làm gì.
+- Bổ sung dữ liệu mô phỏng phía sau để phục vụ màn hình học hàm.
 
 ### V2.4.0
 
@@ -521,7 +534,7 @@ console.log(out.sql, out.warnings, out.stats);
 - Xem trước kết quả bằng JavaScript trên vài chục dòng đầu.
 - Giải thích từng thành phần công thức và cảnh báo các trường hợp dễ sai.
 - Lịch sử công thức và mục yêu thích, nạp lại được cả cấu hình.
-- Thư viện hàm tra nhanh công dụng, ví dụ và mô phỏng kết quả.
+- Thư viện hàm tra nhanh công dụng; bấm từng hàm để mở modal mô phỏng kết quả.
 - Hướng dẫn riêng cho từng workspace qua nút **Hướng dẫn**.
 
 **Cải tiến**

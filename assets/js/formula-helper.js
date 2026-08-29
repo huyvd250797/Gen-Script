@@ -221,6 +221,22 @@
     nodes.reviewOverlay.appendChild(reviewShell);
     root.appendChild(nodes.reviewOverlay);
 
+    nodes.libraryDemoOverlay = h('div', 'fh-review-overlay fh-library-demo-overlay');
+    nodes.libraryDemoOverlay.hidden = true;
+    nodes.libraryDemoOverlay.addEventListener('click', function (e) {
+      if (e.target === nodes.libraryDemoOverlay) closeLibraryDemo();
+    });
+    var demoShell = h('aside', 'fh-review-shell fh-library-demo-shell');
+    var demoHead = h('div', 'fh-review-head');
+    nodes.libraryDemoTitle = h('div');
+    demoHead.appendChild(nodes.libraryDemoTitle);
+    demoHead.appendChild(button('×', 'fh-review-close', closeLibraryDemo));
+    demoShell.appendChild(demoHead);
+    nodes.libraryDemoBody = h('div', 'fh-review-content fh-library-demo-content');
+    demoShell.appendChild(nodes.libraryDemoBody);
+    nodes.libraryDemoOverlay.appendChild(demoShell);
+    root.appendChild(nodes.libraryDemoOverlay);
+
     renderPanel();
     renderSide();
   }
@@ -1397,7 +1413,7 @@
     }));
     var title = h('div', 'fh-head-text');
     title.appendChild(h('h2', null, 'Thư viện hàm'));
-    title.appendChild(h('p', null, 'Tra nhanh công dụng, công thức mẫu và mô phỏng kết quả để người mới học Excel vẫn hiểu được.'));
+    title.appendChild(h('p', null, 'Tra nhanh công dụng và công thức mẫu. Bấm vào hàm để xem mô phỏng bằng lưới Excel.'));
     head.appendChild(title);
     p.appendChild(head);
 
@@ -1418,27 +1434,85 @@
         .filter(function (f) { return f.platforms.indexOf(state.settings.platform) !== -1; })
         .forEach(function (f) {
           var item = h('article', 'fh-lib-item');
+          item.tabIndex = 0;
+          item.setAttribute('role', 'button');
+          item.setAttribute('aria-label', 'Xem mô phỏng hàm ' + f.name);
           item.appendChild(h('h4', null, f.name));
           item.appendChild(h('p', null, f.use));
           var code = h('code', null, f.example);
           item.appendChild(code);
-          if (f.examples && f.examples.length) {
-            var examples = h('div', 'fh-lib-examples');
-            examples.appendChild(h('strong', null, 'Ví dụ dễ hiểu'));
-            f.examples.forEach(function (ex) {
-              var demo = h('div', 'fh-lib-demo');
-              demo.appendChild(h('span', 'fh-lib-demo-label', ex.input));
-              demo.appendChild(h('code', null, ex.formula));
-              demo.appendChild(h('em', null, 'Kết quả: ' + ex.result));
-              examples.appendChild(demo);
-            });
-            item.appendChild(examples);
-          }
+          item.appendChild(h('span', 'fh-lib-open-hint', 'Bấm để xem mô phỏng'));
+          item.addEventListener('click', function () { openLibraryDemo(f); });
+          item.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              openLibraryDemo(f);
+            }
+          });
           listHost.appendChild(item);
         });
     };
     search.addEventListener('input', draw);
     draw();
+  }
+
+  function openLibraryDemo(f) {
+    if (!nodes.libraryDemoOverlay || !nodes.libraryDemoTitle || !nodes.libraryDemoBody) return;
+    clear(nodes.libraryDemoTitle);
+    clear(nodes.libraryDemoBody);
+    nodes.libraryDemoTitle.appendChild(h('h3', null, f.name + ' - mô phỏng hàm'));
+    nodes.libraryDemoTitle.appendChild(h('p', null, f.use));
+
+    var formulaBar = h('div', 'fh-demo-formula-bar');
+    formulaBar.appendChild(h('span', null, 'fx'));
+    formulaBar.appendChild(h('code', null, f.example));
+    nodes.libraryDemoBody.appendChild(formulaBar);
+
+    var guide = h('p', 'fh-demo-guide',
+      'Nhìn giống một sheet Excel nhỏ: cột A là dữ liệu mẫu, cột B là công thức, cột C là kết quả dự kiến.');
+    nodes.libraryDemoBody.appendChild(guide);
+
+    nodes.libraryDemoBody.appendChild(renderLibraryDemoGrid(f.examples || []));
+
+    var note = h('div', 'fh-demo-note');
+    note.appendChild(h('strong', null, 'Cách hiểu nhanh'));
+    note.appendChild(h('p', null,
+      'Nếu dữ liệu ở cột A giống tình huống của bạn, dùng công thức ở cột B và đối chiếu kết quả ở cột C để biết hàm đang xử lý gì.'));
+    nodes.libraryDemoBody.appendChild(note);
+
+    nodes.libraryDemoOverlay.hidden = false;
+  }
+
+  function closeLibraryDemo() {
+    if (nodes.libraryDemoOverlay) nodes.libraryDemoOverlay.hidden = true;
+  }
+
+  function renderLibraryDemoGrid(examples) {
+    var table = h('table', 'fh-demo-grid');
+    var thead = document.createElement('thead');
+    var head = document.createElement('tr');
+    ['', 'A', 'B', 'C'].forEach(function (label) { head.appendChild(h('th', null, label)); });
+    thead.appendChild(head);
+    table.appendChild(thead);
+
+    var body = document.createElement('tbody');
+    var title = document.createElement('tr');
+    title.appendChild(h('th', null, '1'));
+    title.appendChild(h('td', 'fh-demo-cell-head', 'Dữ liệu mẫu'));
+    title.appendChild(h('td', 'fh-demo-cell-head', 'Công thức'));
+    title.appendChild(h('td', 'fh-demo-cell-head', 'Kết quả'));
+    body.appendChild(title);
+
+    examples.forEach(function (ex, i) {
+      var tr = document.createElement('tr');
+      tr.appendChild(h('th', null, String(i + 2)));
+      tr.appendChild(h('td', null, ex.input));
+      tr.appendChild(h('td', 'fh-demo-formula-cell', ex.formula));
+      tr.appendChild(h('td', 'fh-demo-result-cell', ex.result));
+      body.appendChild(tr);
+    });
+    table.appendChild(body);
+    return table;
   }
 
   /* ============================================================

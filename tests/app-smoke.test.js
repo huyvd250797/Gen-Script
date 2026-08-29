@@ -92,7 +92,7 @@ is('sinh INSERT vẫn chạy',
   win.SqlGen.build('insert', 'DM_Test', [['Ma', 'Ten'], ['1', 'A']], { dialect: 'mssql', identityInsert: false })
     .sql.indexOf('INSERT INTO [DM_Test]') === 0, true);
 ok('tab bảng render', doc.querySelectorAll('.sheet-tabs .tab').length >= 1);
-ok('phiên bản hiển thị V2.5.0', doc.querySelector('.app-version').textContent === 'V2.5.0');
+ok('phiên bản hiển thị V2.6.0', doc.querySelector('.app-version').textContent === 'V2.6.0');
 var wrappedIn = win.SqlGen.build('select', 'DM_Test', [
   ['ID'], ['1'], ['2'], ['3'], ['4'], ['5'], ['6']
 ], {
@@ -173,16 +173,21 @@ Array.prototype.filter.call(doc.querySelectorAll('.fh-bar-actions button'), func
   return b.textContent === 'Thư viện hàm';
 })[0].dispatchEvent(new win.Event('click', { bubbles: true }));
 ok('mở được thư viện hàm', !!doc.querySelector('.fh-library'));
-ok('thư viện có ví dụ dễ hiểu', doc.querySelectorAll('.fh-lib-demo').length >= 20);
-ok('ví dụ có kết quả mô phỏng', Array.prototype.some.call(doc.querySelectorAll('.fh-lib-demo em'), function (n) {
-  return n.textContent.indexOf('Kết quả:') === 0;
-}));
+ok('card thư viện không render ví dụ trực tiếp', doc.querySelectorAll('.fh-demo-grid').length === 0);
 var libSearch = doc.querySelector('.fh-search input');
 libSearch.value = 'Không có';
 libSearch.dispatchEvent(new win.Event('input', { bubbles: true }));
 ok('tìm được theo nội dung mô phỏng', Array.prototype.some.call(doc.querySelectorAll('.fh-lib-item h4'), function (n) {
   return n.textContent === 'XLOOKUP';
 }));
+doc.querySelector('.fh-lib-item').dispatchEvent(new win.Event('click', { bubbles: true }));
+ok('click hàm mở modal mô phỏng', !doc.querySelector('.fh-library-demo-overlay').hidden);
+ok('modal có lưới Excel mô phỏng', !!doc.querySelector('.fh-demo-grid'));
+ok('modal có kết quả mô phỏng', Array.prototype.some.call(doc.querySelectorAll('.fh-demo-result-cell'), function (n) {
+  return n.textContent.length > 0;
+}));
+doc.querySelector('.fh-library-demo-overlay .fh-review-close').dispatchEvent(new win.Event('click', { bubbles: true }));
+ok('đóng được modal mô phỏng', doc.querySelector('.fh-library-demo-overlay').hidden);
 doc.querySelector('.fh-back').dispatchEvent(new win.Event('click', { bubbles: true }));
 
 console.log('\n— Đổi Sheet ngay trong Formula Helper (§111)');
