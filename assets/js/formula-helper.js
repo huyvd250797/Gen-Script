@@ -1472,7 +1472,9 @@
       demo && demo.guide ? demo.guide : 'Nhìn giống một sheet Excel nhỏ: cột A là dữ liệu mẫu, cột B là công thức, cột C là kết quả dự kiến.');
     nodes.libraryDemoBody.appendChild(guide);
 
-    nodes.libraryDemoBody.appendChild(renderLibraryDemoGrid(f));
+    var gridWrap = h('div', 'fh-demo-grid-wrap');
+    gridWrap.appendChild(renderLibraryDemoGrid(f));
+    nodes.libraryDemoBody.appendChild(gridWrap);
 
     nodes.libraryDemoBody.appendChild(renderLibraryExplanation(f));
 

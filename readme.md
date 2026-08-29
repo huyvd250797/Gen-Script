@@ -97,7 +97,7 @@ thanh trên cùng để đổi theme; lựa chọn theme cũng được lưu ri�
 đang dùng.
 
 Footer hiển thị bản quyền **© 2026 HuyVo. All rights reserved.** và phiên bản
-hiện tại `V2.8.0` ở góc phải dưới cùng.
+hiện tại `V2.8.1` ở góc phải dưới cùng.
 
 ### INSERT
 
@@ -427,6 +427,16 @@ console.log(out.sql, out.warnings, out.stats);
 ---
 
 ## Changelog
+
+### V2.8.1
+
+**Sửa giao diện**
+
+- Modal mô phỏng hàm rộng hơn, gần full workspace để nhìn đủ nội dung khi browser
+  đang scale/zoom lớn.
+- Bảng mô phỏng có vùng scroll ngang riêng, tránh ép công thức xuống nhiều dòng
+  hoặc bị che trong modal.
+- Formula bar trong modal giữ một dòng và scroll ngang khi công thức dài.
 
 ### V2.8.0
 
