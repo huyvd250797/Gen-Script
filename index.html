@@ -107,6 +107,7 @@
   <label class="opt"><input type="checkbox" id="optMultiRow"> <span>Gộp nhiều dòng vào một lệnh INSERT</span></label>
   <label class="opt"><input type="checkbox" id="optSemicolon"> <span>Kết thúc câu lệnh bằng <code>;</code></span></label>
   <label class="opt opt-num"><span>Chèn <code>GO</code> sau mỗi</span> <input type="number" id="optGoEvery" min="0" max="10000" value="0"> <span>câu lệnh</span></label>
+  <label class="opt opt-num" id="optInWrapEveryRow"><span>Xuống dòng <code>IN</code> sau mỗi</span> <input type="number" id="optInWrapEvery" min="0" max="1000" value="0"> <span>giá trị</span></label>
 </section>
 
 <main class="workspace">
@@ -136,7 +137,7 @@
 
 <footer class="app-footer" aria-label="Thông tin ứng dụng">
   <strong class="app-copyright">© 2026 HuyVo. All rights reserved.</strong>
-  <span class="app-version">V2.4.0</span>
+  <span class="app-version">V2.5.0</span>
 </footer>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -150,6 +151,7 @@
     <li><strong>UPDATE</strong> — các cột đầu tiên là điều kiện <code>WHERE</code>, các cột còn lại vào mệnh đề <code>SET</code>. Tăng "Số cột làm WHERE" nếu khoá gồm nhiều cột.</li>
     <li><strong>SELECT</strong> — mặc định <code>Số cột làm WHERE = 0</code> sẽ sinh <code>SELECT * FROM Table</code>. Khi có cột WHERE, chọn thêm kiểu WHERE: theo dòng, <code>IN</code> từng cột + <code>AND</code>, hoặc <code>IN</code> từng cột + <code>OR</code>.</li>
     <li><strong>Kiểu WHERE SELECT</strong> — "Theo dòng" giữ đúng từng cặp dữ liệu; "IN + AND" lọc giao nhau giữa các danh sách; "IN + OR" tìm rộng theo bất kỳ danh sách nào.</li>
+    <li><strong>Xuống dòng IN</strong> — nhập số lượng giá trị mỗi dòng, ví dụ <code>5</code> để danh sách <code>IN (...)</code> tự cắt dòng sau mỗi 5 giá trị. Để <code>0</code> nếu muốn giữ một dòng.</li>
     <li><strong>Kiểu dữ liệu cột</strong> — bấm badge nhỏ trên header cột để đổi <code>Auto</code> / <code>Chuỗi</code> / <code>Số</code>. Dùng <code>Chuỗi</code> cho mã sinh viên, mã hồ sơ... khi database lưu dạng varchar.</li>
   </ol>
   <h3>Quy tắc chuyển giá trị</h3>
@@ -221,6 +223,9 @@
 
       <h3>Lịch sử và yêu thích</h3>
       <p>Mỗi công thức tạo ra được lưu vào Lịch sử ngay trên máy này. Bấm vào một mục để nạp lại <em>toàn bộ cấu hình</em>, không chỉ sao chép chữ. Bấm <strong>★ Lưu yêu thích</strong> để đặt tên riêng và ghim lên đầu trang.</p>
+
+      <h3>Thư viện hàm</h3>
+      <p>Bấm <strong>Thư viện hàm</strong> để xem công dụng, công thức mẫu, ví dụ dữ liệu đầu vào và kết quả mô phỏng của từng hàm. Phần này giúp người chưa quen Excel hiểu hàm bằng tình huống cụ thể thay vì chỉ nhìn cú pháp.</p>
     </div>
     <footer class="help-foot">
       <button type="button" class="btn btn-primary" id="btnFormulaHelpDone">Đóng</button>

@@ -97,7 +97,7 @@ thanh trên cùng để đổi theme; lựa chọn theme cũng được lưu ri�
 đang dùng.
 
 Footer hiển thị bản quyền **© 2026 HuyVo. All rights reserved.** và phiên bản
-hiện tại `V2.4.0` ở góc phải dưới cùng.
+hiện tại `V2.5.0` ở góc phải dưới cùng.
 
 ### INSERT
 
@@ -199,6 +199,19 @@ Các kiểu có thể bổ sung thêm về sau nếu cần: `NOT IN` để loạ
 Khi bật **Bỏ qua dòng trống**, riêng chế độ SELECT sẽ bỏ qua cả các ô trống
 trong vùng cột WHERE. Ô trống sẽ không sinh `IS NULL`; dòng/cột nào có dữ liệu
 thì mới được đưa vào điều kiện.
+
+Tuỳ chọn **Xuống dòng IN sau mỗi N giá trị** giúp danh sách `IN (...)` dễ đọc
+hơn khi có nhiều giá trị. Ví dụ đặt `5`:
+
+```sql
+WHERE
+    [ID] IN (
+        1, 2, 3, 4, 5,
+        6, 7, 8, 9, 10
+    )
+```
+
+Để `0` nếu muốn giữ danh sách `IN` trên một dòng như các bản cũ.
 
 ---
 
@@ -415,6 +428,21 @@ console.log(out.sql, out.warnings, out.stats);
 
 ## Changelog
 
+### V2.5.0
+
+**Mới**
+
+- Thư viện hàm có thêm ví dụ dữ liệu đầu vào, công thức mẫu và kết quả mô phỏng
+  cho từng hàm Excel/Google Sheets.
+- Tìm kiếm trong Thư viện hàm có thể tìm theo cả nội dung ví dụ và kết quả.
+- Gen Script có tuỳ chọn **Xuống dòng IN sau mỗi N giá trị** cho SELECT dùng
+  `IN (...)`; nhập `0` để giữ một dòng.
+
+**Cải tiến**
+
+- Thẻ thư viện hàm rộng hơn và chia khối ví dụ rõ hơn để người chưa quen Excel
+  dễ hình dung từng hàm làm gì.
+
 ### V2.4.0
 
 **Mới**
@@ -493,7 +521,7 @@ console.log(out.sql, out.warnings, out.stats);
 - Xem trước kết quả bằng JavaScript trên vài chục dòng đầu.
 - Giải thích từng thành phần công thức và cảnh báo các trường hợp dễ sai.
 - Lịch sử công thức và mục yêu thích, nạp lại được cả cấu hình.
-- Thư viện hàm tra nhanh công dụng và ví dụ.
+- Thư viện hàm tra nhanh công dụng, ví dụ và mô phỏng kết quả.
 - Hướng dẫn riêng cho từng workspace qua nút **Hướng dẫn**.
 
 **Cải tiến**

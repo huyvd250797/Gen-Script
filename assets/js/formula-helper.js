@@ -1397,7 +1397,7 @@
     }));
     var title = h('div', 'fh-head-text');
     title.appendChild(h('h2', null, 'Thư viện hàm'));
-    title.appendChild(h('p', null, 'Tra nhanh công dụng và ví dụ của từng hàm.'));
+    title.appendChild(h('p', null, 'Tra nhanh công dụng, công thức mẫu và mô phỏng kết quả để người mới học Excel vẫn hiểu được.'));
     head.appendChild(title);
     p.appendChild(head);
 
@@ -1422,6 +1422,18 @@
           item.appendChild(h('p', null, f.use));
           var code = h('code', null, f.example);
           item.appendChild(code);
+          if (f.examples && f.examples.length) {
+            var examples = h('div', 'fh-lib-examples');
+            examples.appendChild(h('strong', null, 'Ví dụ dễ hiểu'));
+            f.examples.forEach(function (ex) {
+              var demo = h('div', 'fh-lib-demo');
+              demo.appendChild(h('span', 'fh-lib-demo-label', ex.input));
+              demo.appendChild(h('code', null, ex.formula));
+              demo.appendChild(h('em', null, 'Kết quả: ' + ex.result));
+              examples.appendChild(demo);
+            });
+            item.appendChild(examples);
+          }
           listHost.appendChild(item);
         });
     };

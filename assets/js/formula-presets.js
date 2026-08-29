@@ -440,41 +440,147 @@
 
   /* ------------------------------------------------------------ thư viện hàm (§187 §188) */
 
+  function demo(input, formula, result) {
+    return { input: input, formula: formula, result: result };
+  }
+
   var LIBRARY = [
-    { name: 'XLOOKUP', use: 'Tìm giá trị trong một vùng và trả về giá trị tương ứng từ vùng khác.', example: '=XLOOKUP(A2,Database!B:B,Database!A:A,"")', platforms: BOTH },
-    { name: 'VLOOKUP', use: 'Tra cứu theo cột đầu tiên của bảng, trả về cột thứ N bên phải.', example: '=VLOOKUP(A2,Data!A:D,4,FALSE)', platforms: BOTH },
-    { name: 'INDEX', use: 'Lấy giá trị tại một vị trí trong vùng.', example: '=INDEX(B:B,MATCH(A2,A:A,0))', platforms: BOTH },
-    { name: 'MATCH', use: 'Trả về vị trí của giá trị trong một vùng.', example: '=MATCH(A2,A:A,0)', platforms: BOTH },
-    { name: 'COUNTIF', use: 'Đếm số ô thoả một điều kiện.', example: '=COUNTIF($A:$A,A2)', platforms: BOTH },
-    { name: 'COUNTIFS', use: 'Đếm số ô thoả nhiều điều kiện cùng lúc.', example: '=COUNTIFS($A:$A,A2,$B:$B,B2)', platforms: BOTH },
-    { name: 'SUMIF', use: 'Cộng các giá trị thoả một điều kiện.', example: '=SUMIF(A:A,A2,C:C)', platforms: BOTH },
-    { name: 'SUMIFS', use: 'Cộng các giá trị thoả nhiều điều kiện.', example: '=SUMIFS(D:D,A:A,A2,B:B,B2)', platforms: BOTH },
-    { name: 'IF', use: 'Trả về giá trị khác nhau tuỳ điều kiện đúng hay sai.', example: '=IF(A2>=5,"Đạt","Không đạt")', platforms: BOTH },
-    { name: 'IFS', use: 'Xét nhiều điều kiện theo thứ tự, thay cho IF lồng nhau.', example: '=IFS(A2>=8.5,"Giỏi",A2>=7,"Khá",TRUE,"Đạt")', platforms: BOTH },
-    { name: 'AND', use: 'Đúng khi tất cả điều kiện đều đúng.', example: '=AND(A2<>"",B2="Đang học")', platforms: BOTH },
-    { name: 'OR', use: 'Đúng khi có ít nhất một điều kiện đúng.', example: '=OR(A2="CNTT",A2="KTPM")', platforms: BOTH },
-    { name: 'FILTER', use: 'Trả về các dòng thoả điều kiện.', example: '=FILTER(A:G,(F:F="CNTT"),"")', platforms: BOTH },
-    { name: 'UNIQUE', use: 'Loại bỏ giá trị trùng lặp trong một vùng.', example: '=UNIQUE(A2:A10000)', platforms: BOTH },
-    { name: 'SORT', use: 'Sắp xếp một vùng dữ liệu.', example: '=SORT(UNIQUE(A2:A10000))', platforms: BOTH },
-    { name: 'TEXTJOIN', use: 'Nối nhiều giá trị bằng một ký tự ngăn cách.', example: '=TEXTJOIN(" ",TRUE,A2,B2)', platforms: BOTH },
-    { name: 'TRIM', use: 'Cắt khoảng trắng đầu, cuối và gộp khoảng trắng kép.', example: '=TRIM(A2)', platforms: BOTH },
-    { name: 'CLEAN', use: 'Loại bỏ ký tự điều khiển không in được.', example: '=CLEAN(A2)', platforms: BOTH },
-    { name: 'SUBSTITUTE', use: 'Thay thế một chuỗi con bằng chuỗi khác.', example: '=SUBSTITUTE(A2,"-","/")', platforms: BOTH },
-    { name: 'LEFT', use: 'Lấy số ký tự tính từ bên trái.', example: '=LEFT(A2,3)', platforms: BOTH },
-    { name: 'RIGHT', use: 'Lấy số ký tự tính từ bên phải.', example: '=RIGHT(A2,5)', platforms: BOTH },
-    { name: 'MID', use: 'Lấy ký tự bắt đầu từ một vị trí.', example: '=MID(A2,4,4)', platforms: BOTH },
-    { name: 'LEN', use: 'Đếm số ký tự của giá trị.', example: '=LEN(A2)', platforms: BOTH },
-    { name: 'SEARCH', use: 'Tìm vị trí chuỗi con, không phân biệt hoa thường.', example: '=SEARCH("CNTT",A2)', platforms: BOTH },
-    { name: 'FIND', use: 'Tìm vị trí chuỗi con, có phân biệt hoa thường.', example: '=FIND("CNTT",A2)', platforms: BOTH },
-    { name: 'TEXT', use: 'Định dạng số hoặc ngày thành chuỗi.', example: '=TEXT(A2,"dd/mm/yyyy")', platforms: BOTH },
-    { name: 'DATEDIF', use: 'Tính chênh lệch giữa hai mốc thời gian.', example: '=DATEDIF(A2,TODAY(),"Y")', platforms: BOTH },
-    { name: 'YEAR', use: 'Lấy phần năm của một ngày.', example: '=YEAR(A2)', platforms: BOTH },
-    { name: 'MONTH', use: 'Lấy phần tháng của một ngày.', example: '=MONTH(A2)', platforms: BOTH },
-    { name: 'DAY', use: 'Lấy phần ngày của một ngày.', example: '=DAY(A2)', platforms: BOTH },
-    { name: 'QUERY', use: 'Truy vấn dữ liệu bằng cú pháp giống SQL.', example: '=QUERY(A6:G,"select * where F contains \'F3\'",0)', platforms: ['sheets'] },
-    { name: 'ARRAYFORMULA', use: 'Áp dụng công thức cho cả một vùng cùng lúc.', example: '=ARRAYFORMULA(TRIM(A2:A))', platforms: ['sheets'] },
-    { name: 'REGEXMATCH', use: 'Kiểm tra chuỗi có khớp biểu thức chính quy không.', example: '=REGEXMATCH(A2,"^SV\\d+$")', platforms: ['sheets'] },
-    { name: 'REGEXEXTRACT', use: 'Trích phần chuỗi khớp biểu thức chính quy.', example: '=REGEXEXTRACT(A2,"\\d+")', platforms: ['sheets'] }
+    { name: 'XLOOKUP', use: 'Tìm giá trị trong một vùng và trả về giá trị tương ứng từ vùng khác.', example: '=XLOOKUP(A2,Database!B:B,Database!A:A,"")', platforms: BOTH, examples: [
+      demo('A2 = SV001, Database cột B có SV001, cột A là 125', '=XLOOKUP(A2,Database!B:B,Database!A:A,"")', '125'),
+      demo('A2 = SV999 không có trong Database', '=XLOOKUP(A2,Database!B:B,Database!A:A,"Không có")', 'Không có')
+    ] },
+    { name: 'VLOOKUP', use: 'Tra cứu theo cột đầu tiên của bảng, trả về cột thứ N bên phải.', example: '=VLOOKUP(A2,Data!A:D,4,FALSE)', platforms: BOTH, examples: [
+      demo('A2 = M01, Data cột A có M01, cột D là Đang học', '=VLOOKUP(A2,Data!A:D,4,FALSE)', 'Đang học'),
+      demo('A2 = L01, Data cột A có L01, cột B là CNTT', '=VLOOKUP(A2,Data!A:D,2,FALSE)', 'CNTT')
+    ] },
+    { name: 'INDEX', use: 'Lấy giá trị tại một vị trí trong vùng.', example: '=INDEX(B:B,MATCH(A2,A:A,0))', platforms: BOTH, examples: [
+      demo('MATCH tìm A2 ở dòng 5, cột B dòng 5 là Nguyễn An', '=INDEX(B:B,MATCH(A2,A:A,0))', 'Nguyễn An'),
+      demo('Lấy phần tử thứ 3 trong vùng B2:B10', '=INDEX(B2:B10,3)', 'Giá trị ở ô B4')
+    ] },
+    { name: 'MATCH', use: 'Trả về vị trí của giá trị trong một vùng.', example: '=MATCH(A2,A:A,0)', platforms: BOTH, examples: [
+      demo('A2 = SV003, trong A:A đứng ở dòng thứ 4 của vùng tìm', '=MATCH(A2,A:A,0)', '4'),
+      demo('Tìm chữ CNTT trong C2:C20, khớp ở dòng thứ 2 của vùng', '=MATCH("CNTT",C2:C20,0)', '2')
+    ] },
+    { name: 'COUNTIF', use: 'Đếm số ô thoả một điều kiện.', example: '=COUNTIF($A:$A,A2)', platforms: BOTH, examples: [
+      demo('Cột A có SV001 xuất hiện 2 lần, A2 = SV001', '=COUNTIF($A:$A,A2)', '2'),
+      demo('Cột C có 5 dòng là CNTT', '=COUNTIF(C:C,"CNTT")', '5')
+    ] },
+    { name: 'COUNTIFS', use: 'Đếm số ô thoả nhiều điều kiện cùng lúc.', example: '=COUNTIFS($A:$A,A2,$B:$B,B2)', platforms: BOTH, examples: [
+      demo('Cột A = SV001 và cột B = HK1 khớp 1 dòng', '=COUNTIFS(A:A,"SV001",B:B,"HK1")', '1'),
+      demo('Lớp CNTT và trạng thái Đang học có 32 dòng', '=COUNTIFS(C:C,"CNTT",D:D,"Đang học")', '32')
+    ] },
+    { name: 'SUMIF', use: 'Cộng các giá trị thoả một điều kiện.', example: '=SUMIF(A:A,A2,C:C)', platforms: BOTH, examples: [
+      demo('Cộng học phí cột C của các dòng có lớp CNTT ở cột A', '=SUMIF(A:A,"CNTT",C:C)', 'Tổng học phí lớp CNTT'),
+      demo('Cộng số lượng cột D của mã SP01 trong cột A', '=SUMIF(A:A,"SP01",D:D)', 'Tổng số lượng SP01')
+    ] },
+    { name: 'SUMIFS', use: 'Cộng các giá trị thoả nhiều điều kiện.', example: '=SUMIFS(D:D,A:A,A2,B:B,B2)', platforms: BOTH, examples: [
+      demo('Cộng tiền cột D khi lớp = CNTT và học kỳ = HK1', '=SUMIFS(D:D,A:A,"CNTT",B:B,"HK1")', 'Tổng tiền CNTT HK1'),
+      demo('Cộng số tín chỉ đã đạt của SV001 trong năm 2026', '=SUMIFS(E:E,A:A,"SV001",C:C,2026)', 'Tổng tín chỉ')
+    ] },
+    { name: 'IF', use: 'Trả về giá trị khác nhau tuỳ điều kiện đúng hay sai.', example: '=IF(A2>=5,"Đạt","Không đạt")', platforms: BOTH, examples: [
+      demo('A2 = 7', '=IF(A2>=5,"Đạt","Không đạt")', 'Đạt'),
+      demo('A2 đang trống', '=IF(A2="","Thiếu dữ liệu","OK")', 'Thiếu dữ liệu')
+    ] },
+    { name: 'IFS', use: 'Xét nhiều điều kiện theo thứ tự, thay cho IF lồng nhau.', example: '=IFS(A2>=8.5,"Giỏi",A2>=7,"Khá",TRUE,"Đạt")', platforms: BOTH, examples: [
+      demo('A2 = 8', '=IFS(A2>=8.5,"Giỏi",A2>=7,"Khá",TRUE,"Đạt")', 'Khá'),
+      demo('A2 = 4', '=IFS(A2>=8.5,"Giỏi",A2>=7,"Khá",TRUE,"Chưa đạt")', 'Chưa đạt')
+    ] },
+    { name: 'AND', use: 'Đúng khi tất cả điều kiện đều đúng.', example: '=AND(A2<>"",B2="Đang học")', platforms: BOTH, examples: [
+      demo('A2 có mã SV, B2 = Đang học', '=AND(A2<>"",B2="Đang học")', 'TRUE'),
+      demo('Điểm A2 = 6, chuyên cần B2 = 9', '=AND(A2>=5,B2>=8)', 'TRUE')
+    ] },
+    { name: 'OR', use: 'Đúng khi có ít nhất một điều kiện đúng.', example: '=OR(A2="CNTT",A2="KTPM")', platforms: BOTH, examples: [
+      demo('A2 = CNTT', '=OR(A2="CNTT",A2="KTPM")', 'TRUE'),
+      demo('Trạng thái là Đang học hoặc Bảo lưu', '=OR(B2="Đang học",B2="Bảo lưu")', 'TRUE nếu khớp một trong hai')
+    ] },
+    { name: 'FILTER', use: 'Trả về các dòng thoả điều kiện.', example: '=FILTER(A:G,(F:F="CNTT"),"")', platforms: BOTH, examples: [
+      demo('Bảng A:G, cột F là ngành, cần lấy ngành CNTT', '=FILTER(A:G,F:F="CNTT","")', 'Các dòng ngành CNTT'),
+      demo('Lọc sinh viên Đang học ở cột D', '=FILTER(A:D,D:D="Đang học","Không có")', 'Danh sách đang học')
+    ] },
+    { name: 'UNIQUE', use: 'Loại bỏ giá trị trùng lặp trong một vùng.', example: '=UNIQUE(A2:A10000)', platforms: BOTH, examples: [
+      demo('A2:A6 = CNTT, CNTT, KTPM, QTKD', '=UNIQUE(A2:A6)', 'CNTT, KTPM, QTKD'),
+      demo('Danh sách mã lớp có nhiều dòng trùng', '=UNIQUE(C2:C1000)', 'Mỗi mã lớp chỉ còn 1 lần')
+    ] },
+    { name: 'SORT', use: 'Sắp xếp một vùng dữ liệu.', example: '=SORT(UNIQUE(A2:A10000))', platforms: BOTH, examples: [
+      demo('Danh sách lớp chưa theo thứ tự', '=SORT(UNIQUE(A2:A10000))', 'Danh sách lớp không trùng và đã sắp xếp'),
+      demo('Sắp xếp bảng A2:D100 theo cột 2 tăng dần', '=SORT(A2:D100,2,TRUE)', 'Bảng đã xếp theo cột B')
+    ] },
+    { name: 'TEXTJOIN', use: 'Nối nhiều giá trị bằng một ký tự ngăn cách.', example: '=TEXTJOIN(" ",TRUE,A2,B2)', platforms: BOTH, examples: [
+      demo('A2 = Nguyễn Văn, B2 = An', '=TEXTJOIN(" ",TRUE,A2,B2)', 'Nguyễn Văn An'),
+      demo('A2:A4 = SV001, SV002, SV003', '=TEXTJOIN(",",TRUE,A2:A4)', 'SV001,SV002,SV003')
+    ] },
+    { name: 'TRIM', use: 'Cắt khoảng trắng đầu, cuối và gộp khoảng trắng kép.', example: '=TRIM(A2)', platforms: BOTH, examples: [
+      demo('A2 = "  Nguyễn   Văn   An  "', '=TRIM(A2)', 'Nguyễn Văn An'),
+      demo('A2 có dư khoảng trắng cuối mã', '=TRIM(A2)', 'Mã sạch để đối chiếu')
+    ] },
+    { name: 'CLEAN', use: 'Loại bỏ ký tự điều khiển không in được.', example: '=CLEAN(A2)', platforms: BOTH, examples: [
+      demo('A2 có ký tự xuống dòng/ẩn từ copy web', '=CLEAN(A2)', 'Chuỗi sạch hơn'),
+      demo('Mã sinh viên bị dính ký tự không nhìn thấy', '=CLEAN(A2)', 'Mã có thể so sánh lại')
+    ] },
+    { name: 'SUBSTITUTE', use: 'Thay thế một chuỗi con bằng chuỗi khác.', example: '=SUBSTITUTE(A2,"-","/")', platforms: BOTH, examples: [
+      demo('A2 = 01-09-2026', '=SUBSTITUTE(A2,"-","/")', '01/09/2026'),
+      demo('A2 = SV.001.2026', '=SUBSTITUTE(A2,".","")', 'SV0012026')
+    ] },
+    { name: 'LEFT', use: 'Lấy số ký tự tính từ bên trái.', example: '=LEFT(A2,3)', platforms: BOTH, examples: [
+      demo('A2 = CNTT-K49', '=LEFT(A2,4)', 'CNTT'),
+      demo('A2 = SV001', '=LEFT(A2,2)', 'SV')
+    ] },
+    { name: 'RIGHT', use: 'Lấy số ký tự tính từ bên phải.', example: '=RIGHT(A2,5)', platforms: BOTH, examples: [
+      demo('A2 = CNTT-K49', '=RIGHT(A2,3)', 'K49'),
+      demo('A2 = SV000125', '=RIGHT(A2,3)', '125')
+    ] },
+    { name: 'MID', use: 'Lấy ký tự bắt đầu từ một vị trí.', example: '=MID(A2,4,4)', platforms: BOTH, examples: [
+      demo('A2 = SV-2026-001', '=MID(A2,4,4)', '2026'),
+      demo('A2 = ABCDEF', '=MID(A2,2,3)', 'BCD')
+    ] },
+    { name: 'LEN', use: 'Đếm số ký tự của giá trị.', example: '=LEN(A2)', platforms: BOTH, examples: [
+      demo('A2 = SV001', '=LEN(A2)', '5'),
+      demo('A2 = 001234567890', '=LEN(A2)', '12')
+    ] },
+    { name: 'SEARCH', use: 'Tìm vị trí chuỗi con, không phân biệt hoa thường.', example: '=SEARCH("CNTT",A2)', platforms: BOTH, examples: [
+      demo('A2 = Khoa CNTT, tìm CNTT', '=SEARCH("CNTT",A2)', '6'),
+      demo('A2 = khoa cntt, tìm CNTT', '=SEARCH("CNTT",A2)', '6')
+    ] },
+    { name: 'FIND', use: 'Tìm vị trí chuỗi con, có phân biệt hoa thường.', example: '=FIND("CNTT",A2)', platforms: BOTH, examples: [
+      demo('A2 = Khoa CNTT, tìm CNTT', '=FIND("CNTT",A2)', '6'),
+      demo('A2 = khoa cntt, tìm CNTT', '=FIND("CNTT",A2)', '#VALUE! vì khác hoa thường')
+    ] },
+    { name: 'TEXT', use: 'Định dạng số hoặc ngày thành chuỗi.', example: '=TEXT(A2,"dd/mm/yyyy")', platforms: BOTH, examples: [
+      demo('A2 là ngày 2026-09-01', '=TEXT(A2,"dd/mm/yyyy")', '01/09/2026'),
+      demo('A2 = 1250000', '=TEXT(A2,"#,##0")', '1,250,000')
+    ] },
+    { name: 'DATEDIF', use: 'Tính chênh lệch giữa hai mốc thời gian.', example: '=DATEDIF(A2,TODAY(),"Y")', platforms: BOTH, examples: [
+      demo('A2 = 01/01/2000, hôm nay sau sinh nhật năm 2026', '=DATEDIF(A2,TODAY(),"Y")', '26'),
+      demo('Tính số tháng giữa A2 và B2', '=DATEDIF(A2,B2,"M")', 'Số tháng chênh lệch')
+    ] },
+    { name: 'YEAR', use: 'Lấy phần năm của một ngày.', example: '=YEAR(A2)', platforms: BOTH, examples: [
+      demo('A2 = 15/08/2026', '=YEAR(A2)', '2026'),
+      demo('A2 là ngày sinh 20/11/2003', '=YEAR(A2)', '2003')
+    ] },
+    { name: 'MONTH', use: 'Lấy phần tháng của một ngày.', example: '=MONTH(A2)', platforms: BOTH, examples: [
+      demo('A2 = 15/08/2026', '=MONTH(A2)', '8'),
+      demo('A2 = 01/12/2026', '=MONTH(A2)', '12')
+    ] },
+    { name: 'DAY', use: 'Lấy phần ngày của một ngày.', example: '=DAY(A2)', platforms: BOTH, examples: [
+      demo('A2 = 15/08/2026', '=DAY(A2)', '15'),
+      demo('A2 = 01/12/2026', '=DAY(A2)', '1')
+    ] },
+    { name: 'QUERY', use: 'Truy vấn dữ liệu bằng cú pháp giống SQL.', example: '=QUERY(A6:G,"select * where F contains \'F3\'",0)', platforms: ['sheets'], examples: [
+      demo('Bảng A6:G, cột F có ngành CNTT', '=QUERY(A6:G,"select * where F contains \'CNTT\'",0)', 'Các dòng có F chứa CNTT'),
+      demo('Lấy cột A,B nơi cột C = Đang học', '=QUERY(A:C,"select A,B where C = \'Đang học\'",1)', 'Danh sách A,B đang học')
+    ] },
+    { name: 'ARRAYFORMULA', use: 'Áp dụng công thức cho cả một vùng cùng lúc.', example: '=ARRAYFORMULA(TRIM(A2:A))', platforms: ['sheets'], examples: [
+      demo('A2:A có nhiều tên bị dư khoảng trắng', '=ARRAYFORMULA(TRIM(A2:A))', 'Cả cột tên được làm sạch'),
+      demo('A2:A là họ, B2:B là tên', '=ARRAYFORMULA(A2:A&" "&B2:B)', 'Ghép họ tên cho cả cột')
+    ] },
+    { name: 'REGEXMATCH', use: 'Kiểm tra chuỗi có khớp biểu thức chính quy không.', example: '=REGEXMATCH(A2,"^SV\\d+$")', platforms: ['sheets'], examples: [
+      demo('A2 = SV001', '=REGEXMATCH(A2,"^SV\\d+$")', 'TRUE'),
+      demo('A2 = ABC001', '=REGEXMATCH(A2,"^SV\\d+$")', 'FALSE')
+    ] },
+    { name: 'REGEXEXTRACT', use: 'Trích phần chuỗi khớp biểu thức chính quy.', example: '=REGEXEXTRACT(A2,"\\d+")', platforms: ['sheets'], examples: [
+      demo('A2 = SV001', '=REGEXEXTRACT(A2,"\\d+")', '001'),
+      demo('A2 = LOP-CNTT-K49', '=REGEXEXTRACT(A2,"K\\d+")', 'K49')
+    ] }
   ];
 
   function getTool(id) {
@@ -504,7 +610,10 @@
     var q = deaccent(query).trim();
     if (!q) return LIBRARY.slice();
     return LIBRARY.filter(function (f) {
-      return deaccent(f.name + ' ' + f.use).indexOf(q) !== -1;
+      var demos = (f.examples || []).map(function (ex) {
+        return ex.input + ' ' + ex.formula + ' ' + ex.result;
+      }).join(' ');
+      return deaccent(f.name + ' ' + f.use + ' ' + f.example + ' ' + demos).indexOf(q) !== -1;
     });
   }
 

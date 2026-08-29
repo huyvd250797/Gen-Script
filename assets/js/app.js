@@ -1,7 +1,7 @@
 /*!
  * app.js — App shell: ghép lưới nhập liệu, bộ sinh SQL và Formula Helper.
  *
- * V2.4.0: Formula Helper dùng workbench lưới + sidebar công cụ bên phải.
+ * V2.5.0: Thư viện hàm có ví dụ mô phỏng; SELECT IN hỗ trợ xuống dòng theo số giá trị.
  */
 (function () {
   'use strict';
@@ -308,7 +308,8 @@
       selectWhereMode: normalizeSelectWhereMode(el.selectWhereMode.value),
       sqlFormat: state.sqlFormat,
       columnTypes: grid ? grid.getColumnTypes() : [],
-      goEvery: Math.max(0, parseInt($('optGoEvery').value, 10) || 0)
+      goEvery: Math.max(0, parseInt($('optGoEvery').value, 10) || 0),
+      inWrapEvery: Math.max(0, Math.min(1000, parseInt($('optInWrapEvery').value, 10) || 0))
     };
     Object.keys(OPT_INPUTS).forEach(function (k) { o[k] = OPT_INPUTS[k].checked; });
     return o;
@@ -322,6 +323,8 @@
     OPT_INPUTS.multiRowInsert.closest('.opt')
       .classList.toggle('is-off', state.mode !== 'insert' || d.maxRowsPerInsert < 2);
     $('optGoEvery').closest('.opt').classList.toggle('is-off', !d.supportsGo);
+    $('optInWrapEveryRow').classList.toggle('is-off',
+      state.mode !== 'select' || el.selectWhereMode.value === 'matchRows');
   }
 
   function setMode(mode) {
@@ -560,6 +563,7 @@
       sqlFormat: state.sqlFormat,
       workspace: state.workspace,
       goEvery: $('optGoEvery').value,
+      inWrapEvery: $('optInWrapEvery').value,
       opts: Object.keys(OPT_INPUTS).reduce(function (acc, k) {
         acc[k] = OPT_INPUTS[k].checked; return acc;
       }, {})
@@ -591,6 +595,7 @@
       state.workspace = normalizeWorkspace(saved.workspace);
       if (saved.dialect) el.dialect.value = saved.dialect;
       if (saved.goEvery != null) $('optGoEvery').value = saved.goEvery;
+      if (saved.inWrapEvery != null) $('optInWrapEvery').value = saved.inWrapEvery;
       if (saved.opts) {
         Object.keys(OPT_INPUTS).forEach(function (k) {
           if (saved.opts[k] !== undefined) OPT_INPUTS[k].checked = !!saved.opts[k];
@@ -835,7 +840,10 @@
       grid.setMode(state.mode, normalizeWhereColumns(state.mode, el.whereColumns.value));
       scheduleRender();
     });
-    el.selectWhereMode.addEventListener('change', scheduleRender);
+    el.selectWhereMode.addEventListener('change', function () {
+      syncOptionAvailability();
+      scheduleRender();
+    });
     el.dialect.addEventListener('change', function () {
       var d = window.SqlGen.DIALECTS[el.dialect.value];
       if (d) OPT_INPUTS.semicolon.checked = d.defaultSemicolon;
@@ -851,6 +859,7 @@
       OPT_INPUTS[k].addEventListener('change', scheduleRender);
     });
     $('optGoEvery').addEventListener('input', scheduleRender);
+    $('optInWrapEvery').addEventListener('input', scheduleRender);
     Array.prototype.forEach.call(el.sqlFormatInputs, function (input) {
       input.addEventListener('change', function () {
         if (input.checked) setSqlFormat(input.value);
