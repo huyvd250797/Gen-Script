@@ -97,7 +97,7 @@ thanh trên cùng để đổi theme; lựa chọn theme cũng được lưu ri�
 đang dùng.
 
 Footer hiển thị bản quyền **© 2026 HuyVo. All rights reserved.** và phiên bản
-hiện tại `V2.7.0` ở góc phải dưới cùng.
+hiện tại `V2.8.0` ở góc phải dưới cùng.
 
 ### INSERT
 
@@ -427,6 +427,20 @@ console.log(out.sql, out.warnings, out.stats);
 ---
 
 ## Changelog
+
+### V2.8.0
+
+**Mới**
+
+- Bổ sung sheet mô phỏng riêng cho toàn bộ 34 hàm trong Thư viện hàm, không chỉ
+  riêng `COUNTIF`.
+- Mỗi modal hàm có dữ liệu mẫu, công thức theo ô/vùng cụ thể, kết quả dự kiến
+  và giải thích từng phần công thức.
+
+**Cải tiến**
+
+- Các ví dụ được thiết kế theo kiểu bảng Excel thực tế để người chưa biết hàm
+  vẫn nhìn được vùng nào bị quét, ô nào là điều kiện và kết quả vì sao ra như vậy.
 
 ### V2.7.0
 
