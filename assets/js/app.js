@@ -1,7 +1,7 @@
 /*!
  * app.js — App shell: ghép lưới nhập liệu, bộ sinh SQL và Formula Helper.
  *
- * V2.5.0: Thư viện hàm có ví dụ mô phỏng; SELECT IN hỗ trợ xuống dòng theo số giá trị.
+ * V2.6.0: Thư viện hàm trở lại card gọn; click hàm mở modal mô phỏng bằng lưới Excel.
  */
 (function () {
   'use strict';
