@@ -92,7 +92,7 @@ is('sinh INSERT vẫn chạy',
   win.SqlGen.build('insert', 'DM_Test', [['Ma', 'Ten'], ['1', 'A']], { dialect: 'mssql', identityInsert: false })
     .sql.indexOf('INSERT INTO [DM_Test]') === 0, true);
 ok('tab bảng render', doc.querySelectorAll('.sheet-tabs .tab').length >= 1);
-ok('phiên bản hiển thị V2.8.0', doc.querySelector('.app-version').textContent === 'V2.8.0');
+ok('phiên bản hiển thị V2.8.1', doc.querySelector('.app-version').textContent === 'V2.8.1');
 var wrappedIn = win.SqlGen.build('select', 'DM_Test', [
   ['ID'], ['1'], ['2'], ['3'], ['4'], ['5'], ['6']
 ], {
@@ -189,6 +189,7 @@ ok('tìm được theo nội dung mô phỏng', Array.prototype.some.call(doc.qu
 doc.querySelector('.fh-lib-item').dispatchEvent(new win.Event('click', { bubbles: true }));
 ok('click hàm mở modal mô phỏng', !doc.querySelector('.fh-library-demo-overlay').hidden);
 ok('modal có lưới Excel mô phỏng', !!doc.querySelector('.fh-demo-grid'));
+ok('lưới mô phỏng nằm trong vùng scroll riêng', !!doc.querySelector('.fh-demo-grid-wrap'));
 ok('modal có kết quả mô phỏng', Array.prototype.some.call(doc.querySelectorAll('.fh-demo-result-cell'), function (n) {
   return n.textContent.length > 0;
 }));
