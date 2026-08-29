@@ -97,7 +97,7 @@ thanh trên cùng để đổi theme; lựa chọn theme cũng được lưu ri�
 đang dùng.
 
 Footer hiển thị bản quyền **© 2026 HuyVo. All rights reserved.** và phiên bản
-hiện tại `V2.6.0` ở góc phải dưới cùng.
+hiện tại `V2.7.0` ở góc phải dưới cùng.
 
 ### INSERT
 
@@ -427,6 +427,21 @@ console.log(out.sql, out.warnings, out.stats);
 ---
 
 ## Changelog
+
+### V2.7.0
+
+**Mới**
+
+- Modal mô phỏng trong Thư viện hàm hỗ trợ sheet mẫu riêng cho từng hàm.
+- `COUNTIF` có mô phỏng đúng kiểu Excel: vùng dữ liệu ban đầu `$B$2:$B$11`,
+  dữ liệu cần đếm ở `C2:C6`, kết quả đếm và công thức theo từng dòng.
+- Modal có phần giải thích công thức theo từng bước: vùng quét, tiêu chí cần
+  tìm và lý do ra kết quả.
+
+**Cải tiến**
+
+- Bỏ dòng chữ "Bấm để xem mô phỏng" trên card thư viện; chỉ giữ hover/cursor để
+  giao diện gọn hơn.
 
 ### V2.6.0
 
