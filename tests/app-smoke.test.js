@@ -92,7 +92,7 @@ is('sinh INSERT vẫn chạy',
   win.SqlGen.build('insert', 'DM_Test', [['Ma', 'Ten'], ['1', 'A']], { dialect: 'mssql', identityInsert: false })
     .sql.indexOf('INSERT INTO [DM_Test]') === 0, true);
 ok('tab bảng render', doc.querySelectorAll('.sheet-tabs .tab').length >= 1);
-ok('phiên bản hiển thị V2.8.1', doc.querySelector('.app-version').textContent === 'V2.8.1');
+ok('phiên bản hiển thị V2.8.2', doc.querySelector('.app-version').textContent === 'V2.8.2');
 var wrappedIn = win.SqlGen.build('select', 'DM_Test', [
   ['ID'], ['1'], ['2'], ['3'], ['4'], ['5'], ['6']
 ], {

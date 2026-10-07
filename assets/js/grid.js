@@ -716,8 +716,12 @@
       for (var c = s.c1; c <= s.c2; c++) {
         var first = this.data[s.r1][c];
         var last = this.data[s.r2][c];
-        var series = sourceRows > 1 && isStrictNumber(first) && isStrictNumber(last);
-        var step = series ? (Number(last) - Number(first)) / (sourceRows - 1) : 0;
+        var series = isStrictNumber(first) && isStrictNumber(last);
+        // Một ô số duy nhất: kéo fill xuống sẽ tăng +1 mỗi dòng (137 → 138 → 139...),
+        // đúng với nhu cầu đánh số thứ tự nhanh. Với >= 2 ô số, giữ quy luật bước hiện có.
+        var step = series ? (sourceRows > 1
+          ? (Number(last) - Number(first)) / (sourceRows - 1)
+          : 1) : 0;
         for (var r = s.r2 + 1; r <= targetR; r++) {
           this.data[r][c] = series
             ? cleanNumber(Number(last) + step * (r - s.r2))
@@ -768,6 +772,64 @@
     if (!cell.classList.contains('is-fill-anchor')) return false;
     var rect = cell.getBoundingClientRect();
     return event.clientX >= rect.right - 11 && event.clientY >= rect.bottom - 11;
+  };
+
+
+  Grid.prototype._autoFillEndRow = function () {
+    var s = this._selectionRange();
+    var startRow = s.r2 + 1;
+    var lastRow = this.data.length - 1;
+    var width = this.data[0] ? this.data[0].length : 0;
+    if (startRow > lastRow || !width) return s.r2;
+
+    function hasValue(value) {
+      return String(value == null ? '' : value).trim() !== '';
+    }
+
+    // Ưu tiên vùng dữ liệu liền kề ngay bên trái/phải như thao tác double-click
+    // fill handle trong Excel. Chọn cạnh có chuỗi dữ liệu liên tục dài hơn.
+    var best = s.r2;
+    var neighbors = [];
+    if (s.c1 > 0) neighbors.push(s.c1 - 1);
+    if (s.c2 < width - 1) neighbors.push(s.c2 + 1);
+    for (var i = 0; i < neighbors.length; i++) {
+      var c = neighbors[i];
+      var r = startRow;
+      while (r <= lastRow && hasValue(this.data[r][c])) r++;
+      if (r - 1 > best) best = r - 1;
+    }
+    if (best > s.r2) return best;
+
+    // Nếu cột sát cạnh đang trống, vẫn tìm dòng dữ liệu cuối ở các cột khác.
+    // Cách này hữu ích khi cột số thứ tự đứng cạnh một cột phụ trống nhưng bảng
+    // vẫn còn dữ liệu ở những cột xa hơn.
+    for (var row = lastRow; row >= startRow; row--) {
+      for (var col = 0; col < width; col++) {
+        if (col >= s.c1 && col <= s.c2) continue;
+        if (hasValue(this.data[row][col])) return row;
+      }
+    }
+    return s.r2;
+  };
+
+  Grid.prototype._autoFillDown = function () {
+    this._endEdit(true);
+    var s = this._selectionRange();
+    var targetRow = this._autoFillEndRow();
+    if (targetRow <= s.r2) {
+      this.onStatus('Không có dữ liệu phía dưới để tự fill.');
+      return false;
+    }
+    this._applyDragFill(targetRow, s.c2);
+    var sourceRows = s.r2 - s.r1 + 1;
+    var numericSingle = sourceRows === 1;
+    for (var c = s.c1; c <= s.c2 && numericSingle; c++) {
+      numericSingle = isStrictNumber(this.data[s.r1][c]);
+    }
+    this.onStatus(numericSingle
+      ? 'Đã tự đánh số tăng dần đến dòng cuối của dữ liệu.'
+      : 'Đã tự fill xuống đến dòng cuối của dữ liệu.');
+    return true;
   };
 
   Grid.prototype._hideMenu = function () {
@@ -993,6 +1055,13 @@
       var td = e.target.closest ? e.target.closest('td.cell') : null;
       if (!td) return;
       e.preventDefault();
+      if (self._nearFillHandle(td, e)) {
+        self._filling = false;
+        self._fillTarget = null;
+        self.root.classList.remove('is-filling');
+        self._autoFillDown();
+        return;
+      }
       self._beginEdit(td);
     });
 

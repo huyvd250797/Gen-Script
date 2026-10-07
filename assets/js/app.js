@@ -1,7 +1,7 @@
 /*!
  * app.js — App shell: ghép lưới nhập liệu, bộ sinh SQL và Formula Helper.
  *
- * V2.8.1: Mở rộng modal mô phỏng hàm để không bị che khi scale màn hình lớn.
+ * V2.8.2: Fill handle hỗ trợ tự tăng số và double-click fill đến cuối dữ liệu.
  */
 (function () {
   'use strict';
@@ -343,10 +343,10 @@
     el.whereColumns.value = state.sheets.length ? sheetWhereColumns(currentSheet(), mode) : defaultWhereColumns(mode);
     el.selectWhereMode.value = state.sheets.length ? sheetSelectWhereMode(currentSheet()) : 'matchRows';
     $('gridHint').textContent = mode === 'update'
-      ? 'Cột tô hổ phách là WHERE · Arrow di chuyển · double click để sửa · Ctrl+C/V · Delete.'
+      ? 'Cột tô hổ phách là WHERE · Arrow di chuyển · double click để sửa · Ctrl+C/V · Delete · kéo/double click chấm vuông để fill.'
       : mode === 'select'
         ? 'WHERE = 0 sẽ SELECT toàn bảng · chọn kiểu WHERE khi lọc theo dữ liệu.'
-        : 'Arrow di chuyển · double click để sửa · Ctrl+C/V · Delete · kéo chấm vuông để fill.';
+        : 'Arrow di chuyển · double click để sửa · Ctrl+C/V · Delete · kéo chấm vuông để fill · double click chấm vuông để tự fill đến cuối.';
     grid.setMode(mode, normalizeWhereColumns(mode, el.whereColumns.value));
     syncOptionAvailability();
     scheduleRender();

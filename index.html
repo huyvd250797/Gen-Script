@@ -114,7 +114,7 @@
   <section class="pane pane-grid" aria-label="Dữ liệu nguồn">
     <div class="pane-head">
       <h2>Dữ liệu</h2>
-      <p class="pane-hint" id="gridHint">Chọn hoặc kéo vùng ô · Ctrl+C/V · Delete · kéo chấm vuông để fill.</p>
+      <p class="pane-hint" id="gridHint">Chọn hoặc kéo vùng ô · Ctrl+C/V · Delete · kéo chấm vuông để fill · double click chấm vuông để tự fill đến cuối.</p>
       <div class="pane-tools">
         <button type="button" class="btn btn-tiny" id="btnUndo" title="Hoàn tác (Ctrl+Z)" disabled>Hoàn tác</button>
         <button type="button" class="btn btn-tiny" id="btnRedo" title="Làm lại (Ctrl+Y)" disabled>Làm lại</button>
@@ -137,7 +137,7 @@
 
 <footer class="app-footer" aria-label="Thông tin ứng dụng">
   <strong class="app-copyright">© 2026 HuyVo. All rights reserved.</strong>
-  <span class="app-version">V2.8.1</span>
+  <span class="app-version">V2.8.2</span>
 </footer>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -163,7 +163,7 @@
     <li>Ở <code>Auto</code>, chuỗi số mở đầu bằng <code>0</code> (mã BN, mã thẻ) được giữ dạng chuỗi thay vì thành số</li>
   </ul>
   <h3>Mẹo</h3>
-  <p>Bôi đen vùng dữ liệu trong Excel, Ctrl+C, rồi bấm vào ô đầu tiên của lưới và Ctrl+V — lưới sẽ tự giãn ra vừa đủ. Click để chọn ô, double click hoặc F2 để sửa nội dung ô. Kéo chấm vuông ở góc phải dưới vùng chọn để fill xuống như Excel.</p>
+  <p>Bôi đen vùng dữ liệu trong Excel, Ctrl+C, rồi bấm vào ô đầu tiên của lưới và Ctrl+V — lưới sẽ tự giãn ra vừa đủ. Click để chọn ô, double click hoặc F2 để sửa nội dung ô. Kéo chấm vuông ở góc phải dưới vùng chọn để fill xuống như Excel. Với một ô số, kéo xuống sẽ tự tăng +1; double click ngay chấm vuông để tự fill đến dòng cuối của dữ liệu.</p>
   <p>Dữ liệu được lưu riêng trên máy và profile trình duyệt đang mở. Nhiều máy làm cùng lúc sẽ không ghi đè dữ liệu của nhau.</p>
   <ul>
     <li><code>Ctrl+Z</code> hoàn tác, <code>Ctrl+Y</code> làm lại</li>

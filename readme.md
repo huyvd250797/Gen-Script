@@ -80,7 +80,9 @@ copy; nút **Tải .sql** nằm ngay trong modal.
 - `Delete` để xoá nội dung vùng đang chọn.
 - `Ctrl+Z` hoàn tác tối đa 100 bước; `Ctrl+Y` hoặc `Ctrl+Shift+Z` để làm lại.
 - Kéo chấm vuông ở góc phải dưới vùng chọn để fill xuống hoặc sang phải. Khi
-  vùng nguồn có từ hai số, lưới tiếp tục chuỗi số theo bước chênh lệch.
+  kéo xuống từ **một ô số**, lưới tự tăng `+1` cho từng dòng; khi vùng nguồn có
+  từ hai số, lưới tiếp tục chuỗi theo bước chênh lệch. **Double click chấm vuông**
+  để tự fill xuống đến dòng cuối của vùng dữ liệu liền kề, tương tự Excel.
 - `Ctrl+D` fill xuống từ dòng đầu vùng chọn; `Ctrl+R` fill sang phải từ cột đầu.
 - Click chuột phải để sao chép, dán, fill, xoá nội dung, xoá dòng hoặc xoá cột.
 - Dấu `×` trên tiêu đề cột và đầu dòng vẫn cho phép xoá nhanh cột/dòng.
@@ -97,7 +99,7 @@ thanh trên cùng để đổi theme; lựa chọn theme cũng được lưu ri�
 đang dùng.
 
 Footer hiển thị bản quyền **© 2026 HuyVo. All rights reserved.** và phiên bản
-hiện tại `V2.8.1` ở góc phải dưới cùng.
+hiện tại `V2.8.2` ở góc phải dưới cùng.
 
 ### INSERT
 
@@ -407,6 +409,7 @@ lớp đọc ổn định cho workbook riêng của Formula Helper.
 
 ```bash
 node tests/formula-engine.test.js     # không cần cài gì thêm
+node tests/grid-fill.test.js          # không cần cài gì thêm
 npm install jsdom && node tests/app-smoke.test.js
 ```
 
@@ -427,6 +430,17 @@ console.log(out.sql, out.warnings, out.stats);
 ---
 
 ## Changelog
+
+### V2.8.2
+
+**Cải tiến lưới dữ liệu**
+
+- Kéo fill handle xuống từ một ô số sẽ tự tăng `+1` theo từng dòng, ví dụ
+  `137 → 138 → 139 → ...` thay vì lặp lại cùng một giá trị.
+- Double click trực tiếp vào fill handle ở góc phải dưới ô/vùng chọn để tự fill
+  xuống đến dòng cuối của vùng dữ liệu liền kề, tương tự Excel.
+- Nếu nguồn có từ hai số, quy luật bước chênh lệch vẫn được giữ nguyên; dữ liệu
+  không phải số tiếp tục được lặp như trước.
 
 ### V2.8.1
 
